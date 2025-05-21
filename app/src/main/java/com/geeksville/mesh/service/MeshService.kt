@@ -1045,12 +1045,49 @@ class MeshService : Service(), Logging {
                     bytes = s.text.toByteArray(),
                     dataType = Portnums.PortNum.TEXT_MESSAGE_APP_VALUE,
                 )
-                rememberDataPacket(u)
+                serviceScope.handledLaunch {
+                    if (packetRepository.get().findDataPacket(u) == null) {
+                        rememberDataPacket(u)
+                    }
+                }
+            }
+
+            StoreAndForwardProtos.StoreAndForward.VariantCase.HEARTBEAT -> {
+                val fromNum = toNodeNum(dataPacket.from!!)
+                val now = System.currentTimeMillis()
+                val last = storeForwardHeartbeat[fromNum]
+                storeForwardHeartbeat[fromNum] = now
+                if (last != null) {
+                    val delta = ((now - last) / 1000L).toInt()
+                    requestStoreForwardHistory(fromNum, delta)
+                }
             }
 
             else -> {}
         }
     }
+
+    private fun requestStoreForwardHistory(destNum: Int, secAgo: Int) {
+        val window = (secAgo / 60).coerceAtLeast(1)
+        val sf = StoreAndForwardProtos.StoreAndForward.newBuilder().apply {
+            rr = StoreAndForwardProtos.StoreAndForward.RequestResponse.CLIENT_HISTORY
+            history = StoreAndForwardProtos.StoreAndForward.History.newBuilder().apply {
+                this.window = window
+            }.build()
+        }.build()
+
+        sendToRadio(newMeshPacketTo(destNum).buildMeshPacket(
+            channel = nodeDBbyNodeNum[destNum]?.channel ?: 0,
+            priority = MeshPacket.Priority.RELIABLE,
+        ) {
+            portnumValue = Portnums.PortNum.STORE_FORWARD_APP_VALUE
+            payload = sf.toByteString()
+            wantResponse = true
+        })
+    }
+
+    // Remember the last store and forward heartbeat time from each node
+    private val storeForwardHeartbeat = mutableMapOf<Int, Long>()
 
     // If apps try to send packets when our radio is sleeping, we queue them here instead
     private val offlineSentPackets = mutableListOf<DataPacket>()

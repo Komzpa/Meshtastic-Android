@@ -368,7 +368,7 @@ class BleRadioTransport(
                     Logger.d { "[$address] Requested high BLE connection priority" }
                     // Wait for the connection parameter update to succeed before starting the heavy traffic
                     // in onConnect(). Otherwise, the Android BLE stack may disconnect with GATT 147.
-                    delay(1.seconds)
+                    delay(2.seconds)
                 }
 
                 this@BleRadioTransport.callback.onConnect()

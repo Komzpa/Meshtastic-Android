@@ -39,6 +39,7 @@ import org.meshtastic.core.database.entity.MetadataEntity
 import org.meshtastic.core.database.entity.MyNodeEntity
 import org.meshtastic.core.database.entity.NodeEntity
 import org.meshtastic.core.database.entity.Packet
+import org.meshtastic.core.database.entity.PacketFts
 import org.meshtastic.core.database.entity.QuickChatAction
 import org.meshtastic.core.database.entity.ReactionEntity
 import org.meshtastic.core.database.entity.TracerouteNodePositionEntity
@@ -49,6 +50,7 @@ import org.meshtastic.core.database.entity.TracerouteNodePositionEntity
         MyNodeEntity::class,
         NodeEntity::class,
         Packet::class,
+        PacketFts::class,
         ContactSettings::class,
         MeshLog::class,
         QuickChatAction::class,
@@ -95,8 +97,9 @@ import org.meshtastic.core.database.entity.TracerouteNodePositionEntity
         AutoMigration(from = 35, to = 36),
         AutoMigration(from = 36, to = 37),
         AutoMigration(from = 37, to = 38),
+        AutoMigration(from = 38, to = 39),
     ],
-    version = 38,
+    version = 39,
     exportSchema = true,
 )
 @androidx.room3.ConstructedBy(MeshtasticDatabaseConstructor::class)
@@ -120,7 +123,9 @@ abstract class MeshtasticDatabase : RoomDatabase() {
     companion object {
         /** Configures a [RoomDatabase.Builder] with standard settings for this project. */
         fun <T : RoomDatabase> RoomDatabase.Builder<T>.configureCommon(): RoomDatabase.Builder<T> =
-            this.fallbackToDestructiveMigration(dropAllTables = false).setQueryCoroutineContext(ioDispatcher)
+            this.fallbackToDestructiveMigration(dropAllTables = false)
+                .setMultipleConnectionPool(maxNumOfReaders = 4, maxNumOfWriters = 1)
+                .setQueryCoroutineContext(ioDispatcher)
     }
 }
 

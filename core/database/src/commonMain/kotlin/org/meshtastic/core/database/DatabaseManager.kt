@@ -149,6 +149,9 @@ open class DatabaseManager(
         // One-time cleanup: remove legacy DB if present and not active
         managerScope.launch(dispatchers.io) { cleanupLegacyDbIfNeeded(activeDbName = dbName) }
 
+        // Backfill FTS search index for any text messages missing messageText
+        managerScope.launch(dispatchers.io) { backfillSearchIndexIfNeeded(db) }
+
         Logger.i { "Switched active DB to ${anonymizeDbName(dbName)} for address ${anonymizeAddress(address)}" }
     }
 
@@ -288,6 +291,26 @@ open class DatabaseManager(
                 .onFailure { Logger.w(it) { "Failed to delete legacy database ${anonymizeDbName(legacy)}" } }
         }
         datastore.edit { it[legacyCleanedKey] = true }
+    }
+
+    /**
+     * Backfills [Packet.messageText] for existing text-message packets that predate the FTS5 schema. Iterates packets
+     * with empty messageText, extracts text from [DataPacket], and updates. Finally rebuilds the FTS index so search
+     * covers historical messages.
+     */
+    private suspend fun backfillSearchIndexIfNeeded(db: MeshtasticDatabase) {
+        val packetDao = db.packetDao()
+        val packets = packetDao.getAllUserPacketsForMigration()
+        val toUpdate = packets.filter { it.messageText.isEmpty() && it.data.text != null }
+        if (toUpdate.isEmpty()) return
+
+        Logger.i { "Backfilling FTS search index for ${toUpdate.size} messages" }
+        for (packet in toUpdate) {
+            val text = packet.data.text ?: continue
+            packetDao.updateMessageText(packet.uuid, text)
+        }
+        packetDao.rebuildFtsIndex()
+        Logger.i { "FTS search index backfill complete" }
     }
 
     /** Closes all open databases and cancels background work. */

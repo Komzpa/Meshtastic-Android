@@ -26,10 +26,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
 import org.koin.core.annotation.KoinViewModel
 import org.meshtastic.core.common.util.ioDispatcher
@@ -143,6 +145,43 @@ class MessageViewModel(
             .flatMapLatest { packetRepository.getFilteredCountFlow(it) }
             .stateInWhileSubscribed(0)
 
+    // region ── Search ──
+
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    private val _isSearchActive = MutableStateFlow(false)
+    val isSearchActive: StateFlow<Boolean> = _isSearchActive.asStateFlow()
+
+    @OptIn(kotlinx.coroutines.FlowPreview::class)
+    val searchResults: StateFlow<List<Message>> =
+        combine(_searchQuery, contactKeyForPagedMessages) { query, contactKey -> query to contactKey }
+            .debounce(SEARCH_DEBOUNCE_MS)
+            .flatMapLatest { (query, contactKey) ->
+                if (query.length < MIN_SEARCH_LENGTH) {
+                    flowOf(emptyList())
+                } else {
+                    packetRepository.searchMessages(query, contactKey, ::getNode)
+                }
+            }
+            .stateInWhileSubscribed(emptyList())
+
+    fun setSearchQuery(query: String) {
+        _searchQuery.value = query
+    }
+
+    fun toggleSearch() {
+        _isSearchActive.value = !_isSearchActive.value
+        if (!_isSearchActive.value) _searchQuery.value = ""
+    }
+
+    fun closeSearch() {
+        _isSearchActive.value = false
+        _searchQuery.value = ""
+    }
+
+    // endregion
+
     init {
         val contactKey = savedStateHandle.get<String>("contactKey")
         if (contactKey != null) {
@@ -234,4 +273,9 @@ class MessageViewModel(
             val unreadCount = packetRepository.getUnreadCount(contact)
             if (unreadCount == 0) notificationManager.cancel(contact.hashCode())
         }
+
+    companion object {
+        private const val SEARCH_DEBOUNCE_MS = 300L
+        private const val MIN_SEARCH_LENGTH = 2
+    }
 }

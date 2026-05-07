@@ -399,7 +399,85 @@ class SdkRadioControllerTest {
         }
     }
 
-    private suspend fun TestScope.connectedFixture(myNodeNum: Int = 0x11111111): ControllerFixture {
+    @Test
+    fun `sendMessage routes text packet through sdk and emits activity`() = runTest {
+        val serviceRepository = FakeServiceRepository()
+        val fixture = connectedFixture(serviceRepository = serviceRepository)
+        try {
+            val outboundBefore = fixture.transport.outboundPackets().size
+            val packet = org.meshtastic.core.model.DataPacket(
+                to = 0x22334455,
+                bytes = okio.ByteString.of(*"Hello mesh".encodeToByteArray()),
+                dataType = PortNum.TEXT_MESSAGE_APP.value,
+                channel = 0,
+                wantAck = true,
+            )
+
+            fixture.controller.sendMessage(packet)
+            runCurrent()
+
+            val sent = fixture.transport.outboundPackets().drop(outboundBefore)
+            assertTrue(sent.any { it.to == 0x22334455 && it.decoded?.portnum == PortNum.TEXT_MESSAGE_APP })
+        } finally {
+            fixture.client.disconnect()
+        }
+    }
+
+    @Test
+    fun `sendMessage with no client drops silently`() = runTest {
+        val serviceRepository = FakeServiceRepository()
+        val dispatcher =
+            backgroundScope.coroutineContext[kotlin.coroutines.ContinuationInterceptor] as CoroutineDispatcher
+        val controller =
+            SdkRadioController(
+                accessor = TestRadioClientAccessor(null),
+                serviceRepository = serviceRepository,
+                nodeRepository = FakeNodeRepository(),
+                locationManager = NoOpLocationManager,
+                deliveryTracker =
+                MessageDeliveryTracker(
+                    lazyOf(mock<PacketRepository>(MockMode.autofill)),
+                    CoroutineDispatchers(dispatcher, dispatcher, dispatcher),
+                ),
+                radioPrefs = FakeRadioPrefs(),
+            )
+
+        val packet = org.meshtastic.core.model.DataPacket(
+            to = 0x22334455,
+            bytes = okio.ByteString.of(*"hello".encodeToByteArray()),
+            dataType = PortNum.TEXT_MESSAGE_APP.value,
+        )
+        controller.sendMessage(packet)
+        // No crash, no exception
+    }
+
+    @Test
+    fun `requireClient throws when disconnected`() = runTest {
+        val dispatcher =
+            backgroundScope.coroutineContext[kotlin.coroutines.ContinuationInterceptor] as CoroutineDispatcher
+        val controller =
+            SdkRadioController(
+                accessor = TestRadioClientAccessor(null),
+                serviceRepository = FakeServiceRepository(),
+                nodeRepository = FakeNodeRepository(),
+                locationManager = NoOpLocationManager,
+                deliveryTracker =
+                MessageDeliveryTracker(
+                    lazyOf(mock<PacketRepository>(MockMode.autofill)),
+                    CoroutineDispatchers(dispatcher, dispatcher, dispatcher),
+                ),
+                radioPrefs = FakeRadioPrefs(),
+            )
+
+        assertFailsWith<IllegalStateException> {
+            controller.setLocalConfig(Config(device = Config.DeviceConfig(role = Config.DeviceConfig.Role.CLIENT)))
+        }
+    }
+
+    private suspend fun TestScope.connectedFixture(
+        myNodeNum: Int = 0x11111111,
+        serviceRepository: FakeServiceRepository = FakeServiceRepository(),
+    ): ControllerFixture {
         val transport =
             FakeRadioTransport(
                 identity = TransportIdentity("fake:sdk-radio-controller"),
@@ -420,7 +498,7 @@ class SdkRadioControllerTest {
         val controller =
             SdkRadioController(
                 accessor = TestRadioClientAccessor(client),
-                serviceRepository = FakeServiceRepository(),
+                serviceRepository = serviceRepository,
                 nodeRepository = FakeNodeRepository(),
                 locationManager = NoOpLocationManager,
                 deliveryTracker =
@@ -454,8 +532,8 @@ class SdkRadioControllerTest {
         val myNodeNum: Int,
     )
 
-    private class TestRadioClientAccessor(client: RadioClient) : RadioClientAccessor {
-        override val client = MutableStateFlow<RadioClient?>(client)
+    private class TestRadioClientAccessor(client: RadioClient?) : RadioClientAccessor {
+        override val client = MutableStateFlow(client)
 
         override fun rebuildAndConnectAsync() = Unit
 

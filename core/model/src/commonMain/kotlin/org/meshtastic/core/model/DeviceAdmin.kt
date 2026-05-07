@@ -22,11 +22,12 @@ import org.meshtastic.proto.Config
 /** Focused interface for local device configuration and edit sessions. */
 interface DeviceAdmin : ConnectionAware {
     suspend fun setLocalConfig(config: Config)
+
     suspend fun setLocalChannel(channel: Channel)
 
     /**
-     * Run [block] inside a `begin_edit_settings` / `commit_edit_settings` envelope so the device
-     * applies all writes atomically.
+     * Run [block] inside a `begin_edit_settings` / `commit_edit_settings` envelope so the device applies all writes
+     * atomically.
      *
      * @param destNum the target node number (local or remote)
      * @param block a suspending block using [DeviceAdminEdit] receiver to queue writes

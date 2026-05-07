@@ -16,10 +16,10 @@
  */
 package org.meshtastic.core.data.repository
 
-import kotlin.test.BeforeTest
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import kotlin.test.BeforeTest
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])

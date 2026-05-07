@@ -217,7 +217,11 @@ class MessageViewModel(
      *   broadcasting on channel 0.
      * @param replyId The ID of the message this is a reply to, if any.
      */
-    fun sendMessage(str: String, contactKey: String = "0${DataPacket.nodeNumToId(DataPacket.BROADCAST)}", replyId: Int? = null) {
+    fun sendMessage(
+        str: String,
+        contactKey: String = "0${DataPacket.nodeNumToId(DataPacket.BROADCAST)}",
+        replyId: Int? = null,
+    ) {
         safeLaunch(tag = "sendMessage") { sendMessageUseCase.invoke(str, contactKey, replyId) }
     }
 

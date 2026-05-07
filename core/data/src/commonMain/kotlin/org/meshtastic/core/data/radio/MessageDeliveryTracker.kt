@@ -37,28 +37,23 @@ import org.meshtastic.sdk.retryWith
 import kotlin.time.Duration.Companion.seconds
 
 /**
- * Tracks in-flight message delivery via SDK [MessageHandle]s.
- * Maps SDK [SendState] transitions to app [MessageStatus] and persists updates.
+ * Tracks in-flight message delivery via SDK [MessageHandle]s. Maps SDK [SendState] transitions to app [MessageStatus]
+ * and persists updates.
  */
 @Single
-class MessageDeliveryTracker(
-    private val packetRepository: Lazy<PacketRepository>,
-    dispatchers: CoroutineDispatchers,
-) {
+class MessageDeliveryTracker(private val packetRepository: Lazy<PacketRepository>, dispatchers: CoroutineDispatchers) {
     private val scope = CoroutineScope(SupervisorJob() + dispatchers.default)
     private val activeHandles = mutableMapOf<Int, MessageHandle>()
     private val activeHandlesMutex = Mutex()
     private val defaultRetryPolicy = RetryPolicy.ExponentialBackoff(maxAttempts = 3, initialDelay = 2.seconds)
 
     /**
-     * Begin tracking a [MessageHandle] for the given packet ID.
-     * Observes intermediate state transitions and resolves the terminal status via SDK retries.
+     * Begin tracking a [MessageHandle] for the given packet ID. Observes intermediate state transitions and resolves
+     * the terminal status via SDK retries.
      */
     fun track(packetId: Int, handle: MessageHandle, policy: RetryPolicy = defaultRetryPolicy) {
         scope.launch {
-            activeHandlesMutex.withLock {
-                activeHandles[packetId] = handle
-            }
+            activeHandlesMutex.withLock { activeHandles[packetId] = handle }
 
             val repository = packetRepository.value
             val stateObserver = launch {
@@ -79,7 +74,7 @@ class MessageDeliveryTracker(
                 repository.updateMessageStatus(packetId, status)
             } catch (e: CancellationException) {
                 throw e
-            } catch (e: Exception) {
+            } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
                 Logger.e(e) { "[DeliveryTracker] Packet $packetId retry tracking failed" }
                 repository.updateMessageStatus(packetId, MessageStatus.ERROR)
             } finally {

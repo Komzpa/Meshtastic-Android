@@ -37,13 +37,7 @@ class MeshTopologyServiceTest {
 
         service.ingestNeighborInfo(neighborInfo(1, 2 to 7.5f, 3 to -1.0f, lastUpdated = 99))
 
-        assertEquals(
-            setOf(
-                edge(1, 2, 7.5f, 99),
-                edge(1, 3, -1.0f, 99),
-            ),
-            service.edges.value.toSet(),
-        )
+        assertEquals(setOf(edge(1, 2, 7.5f, 99), edge(1, 3, -1.0f, 99)), service.edges.value.toSet())
         assertEquals(3, service.nodeCount.value)
     }
 
@@ -56,10 +50,7 @@ class MeshTopologyServiceTest {
         service.ingestNeighborInfo(neighborInfo(3, 5 to 2.0f))
         service.ingestNeighborInfo(neighborInfo(5, 4 to 1.0f))
 
-        assertEquals(
-            listOf(NodeId(1), NodeId(2), NodeId(4)),
-            service.shortestPath(NodeId(1), NodeId(4)),
-        )
+        assertEquals(listOf(NodeId(1), NodeId(2), NodeId(4)), service.shortestPath(NodeId(1), NodeId(4)))
     }
 
     @Test
@@ -153,20 +144,13 @@ class MeshTopologyServiceTest {
         assertEquals(emptyList(), service.getNeighbors(NodeId(1)))
     }
 
-    private fun neighborInfo(
-        reporter: Int,
-        vararg neighbors: Pair<Int, Float>,
-        lastUpdated: Int = 0,
-    ): NeighborInfo = NeighborInfo(
-        nodeId = NodeId(reporter),
-        neighbors = neighbors.map { (neighbor, snr) -> NeighborInfo.Neighbor(NodeId(neighbor), snr) },
-        lastUpdated = lastUpdated,
-    )
+    private fun neighborInfo(reporter: Int, vararg neighbors: Pair<Int, Float>, lastUpdated: Int = 0): NeighborInfo =
+        NeighborInfo(
+            nodeId = NodeId(reporter),
+            neighbors = neighbors.map { (neighbor, snr) -> NeighborInfo.Neighbor(NodeId(neighbor), snr) },
+            lastUpdated = lastUpdated,
+        )
 
-    private fun edge(
-        from: Int,
-        to: Int,
-        snr: Float,
-        lastUpdated: Int = 0,
-    ): MeshTopology.Edge = MeshTopology.Edge(NodeId(from), NodeId(to), snr, lastUpdated)
+    private fun edge(from: Int, to: Int, snr: Float, lastUpdated: Int = 0): MeshTopology.Edge =
+        MeshTopology.Edge(NodeId(from), NodeId(to), snr, lastUpdated)
 }

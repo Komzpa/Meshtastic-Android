@@ -57,10 +57,7 @@ class AppMetadataRepositoryImplTest {
         dbProvider.close()
     }
 
-    @Test
-    fun `metadataByNum starts empty`() = runTest {
-        assertTrue(repository.metadataByNum.first().isEmpty())
-    }
+    @Test fun `metadataByNum starts empty`() = runTest { assertTrue(repository.metadataByNum.first().isEmpty()) }
 
     @Test
     fun `setFavorite creates missing metadata row`() = runTest {
@@ -141,25 +138,28 @@ class AppMetadataRepositoryImplTest {
 
     @Test
     fun `metadataByNum flow reflects create update and delete changes`() = runTest {
-        val created = backgroundScope.async(UnconfinedTestDispatcher(testScheduler)) {
-            repository.metadataByNum.drop(1).first { it[107]?.isFavorite == true }
-        }
+        val created =
+            backgroundScope.async(UnconfinedTestDispatcher(testScheduler)) {
+                repository.metadataByNum.drop(1).first { it[107]?.isFavorite == true }
+            }
 
         repository.setFavorite(nodeNum = 107, isFavorite = true)
         advanceUntilIdle()
         assertEquals(NodeMetadata(num = 107, isFavorite = true, notes = ""), created.await().getValue(107))
 
-        val updated = backgroundScope.async(UnconfinedTestDispatcher(testScheduler)) {
-            repository.metadataByNum.drop(1).first { it[107]?.notes == "Flow note" }
-        }
+        val updated =
+            backgroundScope.async(UnconfinedTestDispatcher(testScheduler)) {
+                repository.metadataByNum.drop(1).first { it[107]?.notes == "Flow note" }
+            }
 
         repository.setNotes(nodeNum = 107, notes = "Flow note")
         advanceUntilIdle()
         assertEquals("Flow note", updated.await().getValue(107).notes)
 
-        val deleted = backgroundScope.async(UnconfinedTestDispatcher(testScheduler)) {
-            repository.metadataByNum.drop(1).first { it.isEmpty() }
-        }
+        val deleted =
+            backgroundScope.async(UnconfinedTestDispatcher(testScheduler)) {
+                repository.metadataByNum.drop(1).first { it.isEmpty() }
+            }
 
         repository.delete(107)
         advanceUntilIdle()

@@ -34,8 +34,8 @@ import kotlinx.coroutines.test.runTest
 import okio.ByteString.Companion.toByteString
 import org.meshtastic.core.model.MqttConnectionState
 import org.meshtastic.core.network.repository.MQTTRepository
-import org.meshtastic.core.repository.PacketHandler
 import org.meshtastic.core.repository.NodeRepository
+import org.meshtastic.core.repository.PacketHandler
 import org.meshtastic.core.testing.FakeServiceRepository
 import org.meshtastic.mqtt.ConnectionState
 import org.meshtastic.mqtt.MqttException
@@ -50,11 +50,7 @@ import kotlin.test.assertTrue
 
 class MqttManagerImplTest {
 
-    private data class PublishCall(
-        val topic: String,
-        val data: ByteArray,
-        val retained: Boolean,
-    )
+    private data class PublishCall(val topic: String, val data: ByteArray, val retained: Boolean)
 
     private lateinit var mqttRepository: MQTTRepository
     private lateinit var packetHandler: PacketHandler
@@ -80,14 +76,10 @@ class MqttManagerImplTest {
 
         every { mqttRepository.connectionState } returns connectionStateFlow
         every { mqttRepository.proxyMessageFlow } returns proxyMessageFlow
-        every { mqttRepository.publish(any(), any(), any()) } calls { args ->
-            publishCalls +=
-                PublishCall(
-                    topic = args.arg(0),
-                    data = args.arg(1),
-                    retained = args.arg(2),
-                )
-        }
+        every { mqttRepository.publish(any(), any(), any()) } calls
+            { args ->
+                publishCalls += PublishCall(topic = args.arg(0), data = args.arg(1), retained = args.arg(2))
+            }
         every { packetHandler.sendToRadio(any<ToRadio>()) } returns Unit
 
         mqttManager = MqttManagerImpl(mqttRepository, packetHandler, serviceRepository, nodeRepository, serviceScope)
@@ -143,10 +135,7 @@ class MqttManagerImplTest {
 
         mqttManager.startProxy(enabled = true, proxyToClientEnabled = true)
 
-        assertEquals(
-            MqttConnectionState.Disconnected(reason = "timed out"),
-            mqttManager.mqttConnectionState.value,
-        )
+        assertEquals(MqttConnectionState.Disconnected(reason = "timed out"), mqttManager.mqttConnectionState.value)
     }
 
     @Test
@@ -203,10 +192,7 @@ class MqttManagerImplTest {
 
         mqttManager.startProxy(enabled = true, proxyToClientEnabled = true)
 
-        assertEquals(
-            "MQTT: connection rejected (check credentials)",
-            serviceRepository.errorMessage.value,
-        )
+        assertEquals("MQTT: connection rejected (check credentials)", serviceRepository.errorMessage.value)
         assertEquals(MqttConnectionState.Inactive, mqttManager.mqttConnectionState.value)
     }
 

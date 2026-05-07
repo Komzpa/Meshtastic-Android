@@ -27,9 +27,7 @@ import org.meshtastic.proto.MeshPacket
 import org.meshtastic.proto.PortNum
 import org.meshtastic.sdk.NeighborInfo
 
-internal class SdkTopologyBridge(
-    private val topologyService: MeshTopologyService,
-) {
+internal class SdkTopologyBridge(private val topologyService: MeshTopologyService) {
     fun observe(accessor: RadioClientAccessor, scope: CoroutineScope) {
         accessor.client
             .flatMapLatest { client -> client?.packets ?: emptyFlow() }
@@ -42,13 +40,15 @@ internal class SdkTopologyBridge(
         val payload = packet.decoded?.payload?.toByteArray() ?: return
         runCatching {
             val proto = org.meshtastic.proto.NeighborInfo.ADAPTER.decode(payload)
-            val info = NeighborInfo.fromProto(
-                reportingNode = packet.from,
-                neighborNodeIds = proto.neighbors.map { it.node_id },
-                snrValues = proto.neighbors.map { it.snr },
-                timestamp = proto.last_sent_by_id,
-            )
+            val info =
+                NeighborInfo.fromProto(
+                    reportingNode = packet.from,
+                    neighborNodeIds = proto.neighbors.map { it.node_id },
+                    snrValues = proto.neighbors.map { it.snr },
+                    timestamp = proto.last_sent_by_id,
+                )
             topologyService.ingestNeighborInfo(info)
-        }.onFailure { e -> Logger.w(e) { "[SdkBridge] Failed to parse NeighborInfo" } }
+        }
+            .onFailure { e -> Logger.w(e) { "[SdkBridge] Failed to parse NeighborInfo" } }
     }
 }

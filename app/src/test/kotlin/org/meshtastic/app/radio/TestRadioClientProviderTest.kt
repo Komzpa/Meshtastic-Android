@@ -50,30 +50,22 @@ class TestRadioClientProviderTest {
         provider.connect()
         assertEquals(ConnectionState.Connected, provider.client.connection.value)
 
-        val nodeInfo = NodeInfo(
-            num = 0x1234,
-            user = User(
-                id = "!00001234",
-                long_name = "Test Node",
-                short_name = "TN",
-            ),
-        )
+        val nodeInfo = NodeInfo(num = 0x1234, user = User(id = "!00001234", long_name = "Test Node", short_name = "TN"))
 
-        val packetAwaiter = backgroundScope.async {
-            provider.client.packets.first { packet ->
-                packet.from == nodeInfo.num && packet.decodeAsNodeInfo()?.num == nodeInfo.num
+        val packetAwaiter =
+            backgroundScope.async {
+                provider.client.packets.first { packet ->
+                    packet.from == nodeInfo.num && packet.decodeAsNodeInfo()?.num == nodeInfo.num
+                }
             }
-        }
         runCurrent()
 
         provider.transport.injectPacket(
             MeshPacket(
                 from = nodeInfo.num,
                 to = provider.nodeNum,
-                decoded = Data(
-                    portnum = PortNum.NODEINFO_APP,
-                    payload = NodeInfo.ADAPTER.encode(nodeInfo).toByteString(),
-                ),
+                decoded =
+                Data(portnum = PortNum.NODEINFO_APP, payload = NodeInfo.ADAPTER.encode(nodeInfo).toByteString()),
             ),
         )
         runCurrent()
@@ -81,11 +73,10 @@ class TestRadioClientProviderTest {
 
         assertEquals(nodeInfo.num, packetAwaiter.await().decodeAsNodeInfo()?.num)
 
-        val nodeAwaiter = backgroundScope.async {
-            provider.client.nodes.first { change ->
-                change is NodeChange.Added && change.node.num == nodeInfo.num
+        val nodeAwaiter =
+            backgroundScope.async {
+                provider.client.nodes.first { change -> change is NodeChange.Added && change.node.num == nodeInfo.num }
             }
-        }
         runCurrent()
 
         provider.transport.injectNodeInfo(nodeInfo)
@@ -103,13 +94,14 @@ class TestRadioClientProviderTest {
 
     private fun FakeRadioTransport.injectNodeInfo(nodeInfo: NodeInfo) {
         val proto = FromRadio.ADAPTER.encode(FromRadio(node_info = nodeInfo))
-        val frame = ByteArray(4 + proto.size).apply {
-            this[0] = 0x94.toByte()
-            this[1] = 0xC3.toByte()
-            this[2] = (proto.size shr 8).toByte()
-            this[3] = (proto.size and 0xFF).toByte()
-            proto.copyInto(this, destinationOffset = 4)
-        }
+        val frame =
+            ByteArray(4 + proto.size).apply {
+                this[0] = 0x94.toByte()
+                this[1] = 0xC3.toByte()
+                this[2] = (proto.size shr 8).toByte()
+                this[3] = (proto.size and 0xFF).toByte()
+                proto.copyInto(this, destinationOffset = 4)
+            }
         injectFrame(Frame(ByteString(frame)))
     }
 }

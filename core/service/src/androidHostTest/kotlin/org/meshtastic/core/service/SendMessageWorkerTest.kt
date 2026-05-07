@@ -121,7 +121,9 @@ class SendMessageWorkerTest {
         // Assert
         assertEquals(ListenableWorker.Result.retry(), result)
         assertEquals(emptyList<DataPacket>(), radioController.sentPackets)
-        verifySuspend(mode = VerifyMode.exactly(0)) { packetRepository.updateMessageStatus(any<DataPacket>(), any<MessageStatus>()) }
+        verifySuspend(mode = VerifyMode.exactly(0)) {
+            packetRepository.updateMessageStatus(any<DataPacket>(), any<MessageStatus>())
+        }
     }
 
     @Test

@@ -63,10 +63,10 @@ import org.meshtastic.core.model.NodeSortOption
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.clear
 import org.meshtastic.core.resources.desc_node_filter_clear
-import org.meshtastic.core.resources.node_filter_exclude_infrastructure
-import org.meshtastic.core.resources.node_filter_exclude_mqtt
 import org.meshtastic.core.resources.node_filter_distance_km
 import org.meshtastic.core.resources.node_filter_distance_unlimited
+import org.meshtastic.core.resources.node_filter_exclude_infrastructure
+import org.meshtastic.core.resources.node_filter_exclude_mqtt
 import org.meshtastic.core.resources.node_filter_ignored
 import org.meshtastic.core.resources.node_filter_include_unknown
 import org.meshtastic.core.resources.node_filter_max_distance
@@ -353,8 +353,8 @@ private fun DistanceFilterDropdownSection(maxDistanceKm: Float?, onMaxDistanceKm
             distanceOptions.forEach { option ->
                 Text(
                     text =
-                        option?.let { stringResource(Res.string.node_filter_distance_km, formatDistanceKm(it)) }
-                            ?: stringResource(Res.string.node_filter_distance_unlimited),
+                    option?.let { stringResource(Res.string.node_filter_distance_km, formatDistanceKm(it)) }
+                        ?: stringResource(Res.string.node_filter_distance_unlimited),
                     modifier = Modifier.weight(1f),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,

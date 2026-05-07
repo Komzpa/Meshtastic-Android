@@ -31,9 +31,7 @@ import org.koin.core.annotation.Factory
  * while the UI is active.
  */
 @Factory
-class MeshServiceClient(
-    private val context: Context,
-) : DefaultLifecycleObserver {
+class MeshServiceClient(private val context: Context) : DefaultLifecycleObserver {
 
     private val lifecycleOwner: LifecycleOwner = context as LifecycleOwner
 

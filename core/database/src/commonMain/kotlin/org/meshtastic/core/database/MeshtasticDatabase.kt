@@ -149,7 +149,8 @@ class AutoMigration38to39 : AutoMigrationSpec {
             SELECT num, is_favorite, is_ignored, is_muted, notes, manually_verified
             FROM nodes
             WHERE is_favorite = 1 OR is_ignored = 1 OR is_muted = 1 OR notes != '' OR manually_verified = 1
-            """.trimIndent()
+            """
+                .trimIndent(),
         )
     }
 }

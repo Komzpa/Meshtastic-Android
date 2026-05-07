@@ -37,7 +37,6 @@ import org.meshtastic.core.resources.request_air_quality_metrics
 import org.meshtastic.core.resources.request_device_metrics
 import org.meshtastic.core.resources.request_environment_metrics
 import org.meshtastic.core.resources.request_host_metrics
-import org.meshtastic.core.resources.request_pax_metrics
 import org.meshtastic.core.resources.request_power_metrics
 import org.meshtastic.core.resources.requesting_from
 import org.meshtastic.core.resources.signal_quality
@@ -68,7 +67,8 @@ constructor(
                 Logger.i { "Requesting UserInfo for '$destNum'" }
                 dataRequester.requestUserInfo(destNum)
                 showFeedback(UiText.Resource(Res.string.requesting_from, Res.string.user_info, longName))
-            }.onFailure { e -> Logger.e(e) { "requestUserInfo failed" } }
+            }
+                .onFailure { e -> Logger.e(e) { "requestUserInfo failed" } }
         }
     }
 
@@ -79,7 +79,8 @@ constructor(
                 dataRequester.requestNeighborInfo(destNum)
                 _lastRequestNeighborTimes.update { it + (destNum to nowMillis) }
                 showFeedback(UiText.Resource(Res.string.requesting_from, Res.string.neighbor_info, longName))
-            }.onFailure { e -> Logger.e(e) { "requestNeighborInfo failed" } }
+            }
+                .onFailure { e -> Logger.e(e) { "requestNeighborInfo failed" } }
         }
     }
 
@@ -89,7 +90,8 @@ constructor(
                 Logger.i { "Requesting position for '$destNum'" }
                 dataRequester.requestPosition(destNum, position)
                 showFeedback(UiText.Resource(Res.string.requesting_from, Res.string.position, longName))
-            }.onFailure { e -> Logger.e(e) { "requestPosition failed" } }
+            }
+                .onFailure { e -> Logger.e(e) { "requestPosition failed" } }
         }
     }
 
@@ -112,7 +114,8 @@ constructor(
                     }
 
                 showFeedback(UiText.Resource(Res.string.requesting_from, typeRes, longName))
-            }.onFailure { e -> Logger.e(e) { "requestTelemetry failed" } }
+            }
+                .onFailure { e -> Logger.e(e) { "requestTelemetry failed" } }
         }
     }
 
@@ -123,7 +126,8 @@ constructor(
                 dataRequester.requestTraceroute(destNum)
                 _lastTracerouteTime.value = nowMillis
                 showFeedback(UiText.Resource(Res.string.requesting_from, Res.string.traceroute, longName))
-            }.onFailure { e -> Logger.e(e) { "requestTraceroute failed" } }
+            }
+                .onFailure { e -> Logger.e(e) { "requestTraceroute failed" } }
         }
     }
 }

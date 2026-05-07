@@ -18,7 +18,6 @@ package org.meshtastic.core.data.repository
 
 import dev.mokkery.MockMode
 import dev.mokkery.answering.calls
-import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.mock
@@ -73,20 +72,23 @@ class FirmwareReleaseRepositoryImplTest {
         apiService = mock(MockMode.autofill)
         jsonDataSource = mock(MockMode.autofill)
 
-        everySuspend { apiService.getFirmwareReleases() } calls {
-            remoteCallCount += 1
-            NetworkFirmwareReleases()
-        }
-        every { jsonDataSource.loadFirmwareReleaseFromJsonAsset() } calls {
-            jsonCallCount += 1
-            NetworkFirmwareReleases()
-        }
+        everySuspend { apiService.getFirmwareReleases() } calls
+            {
+                remoteCallCount += 1
+                NetworkFirmwareReleases()
+            }
+        every { jsonDataSource.loadFirmwareReleaseFromJsonAsset() } calls
+            {
+                jsonCallCount += 1
+                NetworkFirmwareReleases()
+            }
 
-        repository = FirmwareReleaseRepositoryImpl(
-            remoteDataSource = FirmwareReleaseRemoteDataSource(apiService, dispatchers),
-            localDataSource = FirmwareReleaseLocalDataSource(dbProvider, dispatchers),
-            jsonDataSource = jsonDataSource,
-        )
+        repository =
+            FirmwareReleaseRepositoryImpl(
+                remoteDataSource = FirmwareReleaseRemoteDataSource(apiService, dispatchers),
+                localDataSource = FirmwareReleaseLocalDataSource(dbProvider, dispatchers),
+                jsonDataSource = jsonDataSource,
+            )
     }
 
     @AfterTest
@@ -96,13 +98,14 @@ class FirmwareReleaseRepositoryImplTest {
 
     @Test
     fun `empty cache emits null then latest stable from remote`() = runTest(testDispatcher) {
-        everySuspend { apiService.getFirmwareReleases() } calls {
-            remoteCallCount += 1
-            releases(
-                stable = listOf(release("v2.9.0.abc"), release("v2.10.0.abc")),
-                alpha = listOf(release("v2.11.0.alpha.1")),
-            )
-        }
+        everySuspend { apiService.getFirmwareReleases() } calls
+            {
+                remoteCallCount += 1
+                releases(
+                    stable = listOf(release("v2.9.0.abc"), release("v2.10.0.abc")),
+                    alpha = listOf(release("v2.11.0.alpha.1")),
+                )
+            }
 
         val emissions = repository.stableRelease.toList()
 
@@ -131,10 +134,11 @@ class FirmwareReleaseRepositoryImplTest {
             FirmwareReleaseType.STABLE,
             lastUpdated = nowMillis - TimeConstants.ONE_HOUR.inWholeMilliseconds - 1,
         )
-        everySuspend { apiService.getFirmwareReleases() } calls {
-            remoteCallCount += 1
-            releases(stable = listOf(release("v2.10.1.abc")))
-        }
+        everySuspend { apiService.getFirmwareReleases() } calls
+            {
+                remoteCallCount += 1
+                releases(stable = listOf(release("v2.10.1.abc")))
+            }
 
         val emissions = repository.stableRelease.toList()
 
@@ -149,14 +153,16 @@ class FirmwareReleaseRepositoryImplTest {
             FirmwareReleaseType.STABLE,
             lastUpdated = nowMillis - TimeConstants.ONE_HOUR.inWholeMilliseconds - 1,
         )
-        everySuspend { apiService.getFirmwareReleases() } calls {
-            remoteCallCount += 1
-            throw IllegalStateException("network down")
-        }
-        every { jsonDataSource.loadFirmwareReleaseFromJsonAsset() } calls {
-            jsonCallCount += 1
-            releases(stable = listOf(release("v2.11.0.abc")))
-        }
+        everySuspend { apiService.getFirmwareReleases() } calls
+            {
+                remoteCallCount += 1
+                throw IllegalStateException("network down")
+            }
+        every { jsonDataSource.loadFirmwareReleaseFromJsonAsset() } calls
+            {
+                jsonCallCount += 1
+                releases(stable = listOf(release("v2.11.0.abc")))
+            }
 
         val emissions = repository.stableRelease.toList()
 
@@ -173,14 +179,16 @@ class FirmwareReleaseRepositoryImplTest {
             FirmwareReleaseType.STABLE,
             lastUpdated = nowMillis - TimeConstants.ONE_HOUR.inWholeMilliseconds - 1,
         )
-        everySuspend { apiService.getFirmwareReleases() } calls {
-            remoteCallCount += 1
-            throw IllegalStateException("network down")
-        }
-        every { jsonDataSource.loadFirmwareReleaseFromJsonAsset() } calls {
-            jsonCallCount += 1
-            throw IllegalArgumentException("missing asset")
-        }
+        everySuspend { apiService.getFirmwareReleases() } calls
+            {
+                remoteCallCount += 1
+                throw IllegalStateException("network down")
+            }
+        every { jsonDataSource.loadFirmwareReleaseFromJsonAsset() } calls
+            {
+                jsonCallCount += 1
+                throw IllegalArgumentException("missing asset")
+            }
 
         val emissions = repository.stableRelease.toList()
 
@@ -190,13 +198,14 @@ class FirmwareReleaseRepositoryImplTest {
 
     @Test
     fun `alpha release emits the newest alpha version only`() = runTest(testDispatcher) {
-        everySuspend { apiService.getFirmwareReleases() } calls {
-            remoteCallCount += 1
-            releases(
-                stable = listOf(release("v2.9.0.abc")),
-                alpha = listOf(release("v2.11.0.alpha.1"), release("v2.12.0.alpha.1")),
-            )
-        }
+        everySuspend { apiService.getFirmwareReleases() } calls
+            {
+                remoteCallCount += 1
+                releases(
+                    stable = listOf(release("v2.9.0.abc")),
+                    alpha = listOf(release("v2.11.0.alpha.1"), release("v2.12.0.alpha.1")),
+                )
+            }
 
         val emissions = repository.alphaRelease.toList()
 
@@ -206,13 +215,11 @@ class FirmwareReleaseRepositoryImplTest {
 
     @Test
     fun `stable collection warms alpha cache for subsequent alpha collectors`() = runTest(testDispatcher) {
-        everySuspend { apiService.getFirmwareReleases() } calls {
-            remoteCallCount += 1
-            releases(
-                stable = listOf(release("v2.9.9.abc")),
-                alpha = listOf(release("v2.12.0.alpha.2")),
-            )
-        }
+        everySuspend { apiService.getFirmwareReleases() } calls
+            {
+                remoteCallCount += 1
+                releases(stable = listOf(release("v2.9.9.abc")), alpha = listOf(release("v2.12.0.alpha.2")))
+            }
 
         val stableEmissions = repository.stableRelease.toList()
         val alphaEmissions = repository.alphaRelease.toList()
@@ -227,10 +234,11 @@ class FirmwareReleaseRepositoryImplTest {
     @Test
     fun `invalidateCache clears database and next collection refetches`() = runTest(testDispatcher) {
         cacheRelease(release("v2.8.0.abc"), FirmwareReleaseType.STABLE)
-        everySuspend { apiService.getFirmwareReleases() } calls {
-            remoteCallCount += 1
-            releases(stable = listOf(release("v2.10.2.abc")))
-        }
+        everySuspend { apiService.getFirmwareReleases() } calls
+            {
+                remoteCallCount += 1
+                releases(stable = listOf(release("v2.10.2.abc")))
+            }
 
         repository.invalidateCache()
         val emissions = repository.stableRelease.toList()
@@ -255,10 +263,11 @@ class FirmwareReleaseRepositoryImplTest {
 
     @Test
     fun `empty remote release list emits null twice`() = runTest(testDispatcher) {
-        everySuspend { apiService.getFirmwareReleases() } calls {
-            remoteCallCount += 1
-            NetworkFirmwareReleases()
-        }
+        everySuspend { apiService.getFirmwareReleases() } calls
+            {
+                remoteCallCount += 1
+                NetworkFirmwareReleases()
+            }
 
         val emissions = repository.stableRelease.toList()
 

@@ -142,8 +142,7 @@ open class MeshLogRepositoryImpl(
         .getOrNull()
 
     /** Returns a flow that maps a [nodeNum] to [MeshLog.NODE_NUM_LOCAL] if it is the locally connected node. */
-    private fun effectiveLogId(nodeNum: Int): Flow<Int> = nodeRepository
-        .myNodeInfo
+    private fun effectiveLogId(nodeNum: Int): Flow<Int> = nodeRepository.myNodeInfo
         .map { info -> if (nodeNum == info?.myNodeNum) MeshLog.NODE_NUM_LOCAL else nodeNum }
         .distinctUntilChanged()
 

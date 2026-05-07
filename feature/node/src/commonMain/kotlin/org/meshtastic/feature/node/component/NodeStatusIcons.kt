@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
+import org.meshtastic.core.model.CongestionLevel
 import org.meshtastic.core.model.ConnectionState
 import org.meshtastic.core.model.DeviceType
 import org.meshtastic.core.resources.Res
@@ -60,7 +61,6 @@ import org.meshtastic.core.ui.theme.StatusColors.StatusBlue
 import org.meshtastic.core.ui.theme.StatusColors.StatusOrange
 import org.meshtastic.core.ui.theme.StatusColors.StatusRed
 import org.meshtastic.core.ui.theme.StatusColors.StatusYellow
-import org.meshtastic.core.model.CongestionLevel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -125,10 +125,14 @@ private fun ThisNodeStatusBadge(connectionState: ConnectionState, deviceType: De
                     stringResource(
                         when (connectionState) {
                             ConnectionState.Connected -> Res.string.connected
+
                             is ConnectionState.Connecting,
                             is ConnectionState.Configuring,
-                            is ConnectionState.Reconnecting -> Res.string.connecting
+                            is ConnectionState.Reconnecting,
+                            -> Res.string.connecting
+
                             ConnectionState.Disconnected -> Res.string.disconnected
+
                             ConnectionState.DeviceSleep -> Res.string.device_sleeping
                         },
                     ),

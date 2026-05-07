@@ -5,6 +5,14 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.meshtastic.core.data.radio
 
@@ -42,12 +50,11 @@ import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
 
 /**
- * Integration tests verifying the full SDK → Bridge → Repository chain,
- * connection lifecycle state transitions, and error resilience.
+ * Integration tests verifying the full SDK → Bridge → Repository chain, connection lifecycle state transitions, and
+ * error resilience.
  *
- * These tests spin up a real [RadioClient] backed by [FakeRadioTransport]
- * (with autoHandshake) and wire it through [SdkStateBridge] to real
- * repository fakes, verifying the complete data flow end-to-end.
+ * These tests spin up a real [RadioClient] backed by [FakeRadioTransport] (with autoHandshake) and wire it through
+ * [SdkStateBridge] to real repository fakes, verifying the complete data flow end-to-end.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class SdkIntegrationTest {
@@ -72,7 +79,8 @@ class SdkIntegrationTest {
                 id = 42,
                 from = 0x22222222,
                 to = 0x11111111,
-                decoded = Data(
+                decoded =
+                Data(
                     portnum = PortNum.TEXT_MESSAGE_APP,
                     payload = "Hello mesh!".encodeToByteArray().toByteString(),
                 ),
@@ -102,14 +110,12 @@ class SdkIntegrationTest {
             MeshPacket(
                 from = 0x11111111, // own node — triggers local congestion tracking
                 to = 0,
-                decoded = Data(
+                decoded =
+                Data(
                     portnum = PortNum.TELEMETRY_APP,
-                    payload = Telemetry(
-                        device_metrics = DeviceMetrics(
-                            air_util_tx = 80f,
-                            channel_utilization = 85f,
-                        ),
-                    ).let { Telemetry.ADAPTER.encode(it).toByteString() },
+                    payload =
+                    Telemetry(device_metrics = DeviceMetrics(air_util_tx = 80f, channel_utilization = 85f))
+                        .let { Telemetry.ADAPTER.encode(it).toByteString() },
                 ),
             ),
         )
@@ -135,7 +141,8 @@ class SdkIntegrationTest {
 
         transport.injectStoreForwardResponse(
             requestId = 0,
-            message = StoreAndForward(
+            message =
+            StoreAndForward(
                 rr = StoreAndForward.RequestResponse.ROUTER_HEARTBEAT,
                 heartbeat = StoreAndForward.Heartbeat(period = 900, secondary = 0),
             ),
@@ -163,18 +170,21 @@ class SdkIntegrationTest {
         runCurrent()
 
         // Inject a NEIGHBORINFO_APP packet
-        val neighborInfo = org.meshtastic.proto.NeighborInfo(
-            node_id = 0x22222222,
-            neighbors = listOf(
-                org.meshtastic.proto.Neighbor(node_id = 0x33333333, snr = 7.5f),
-                org.meshtastic.proto.Neighbor(node_id = 0x44444444, snr = -3.0f),
-            ),
-        )
+        val neighborInfo =
+            org.meshtastic.proto.NeighborInfo(
+                node_id = 0x22222222,
+                neighbors =
+                listOf(
+                    org.meshtastic.proto.Neighbor(node_id = 0x33333333, snr = 7.5f),
+                    org.meshtastic.proto.Neighbor(node_id = 0x44444444, snr = -3.0f),
+                ),
+            )
         transport.injectPacket(
             MeshPacket(
                 from = 0x22222222,
                 to = 0xFFFFFFFF.toInt(),
-                decoded = Data(
+                decoded =
+                Data(
                     portnum = PortNum.NEIGHBORINFO_APP,
                     payload = org.meshtastic.proto.NeighborInfo.ADAPTER.encode(neighborInfo).toByteString(),
                 ),
@@ -284,11 +294,12 @@ class SdkIntegrationTest {
             MeshPacket(
                 from = 0x11111111,
                 to = 0,
-                decoded = Data(
+                decoded =
+                Data(
                     portnum = PortNum.TELEMETRY_APP,
-                    payload = Telemetry(
-                        device_metrics = DeviceMetrics(air_util_tx = 90f, channel_utilization = 90f),
-                    ).let { Telemetry.ADAPTER.encode(it).toByteString() },
+                    payload =
+                    Telemetry(device_metrics = DeviceMetrics(air_util_tx = 90f, channel_utilization = 90f))
+                        .let { Telemetry.ADAPTER.encode(it).toByteString() },
                 ),
             ),
         )
@@ -325,7 +336,8 @@ class SdkIntegrationTest {
                 id = 99,
                 from = 0x33333333,
                 to = 0x11111111,
-                decoded = Data(
+                decoded =
+                Data(
                     portnum = PortNum.TELEMETRY_APP,
                     payload = byteArrayOf(0xFF.toByte(), 0xFE.toByte(), 0x00, 0x01).toByteString(),
                 ),
@@ -339,7 +351,8 @@ class SdkIntegrationTest {
                 id = 100,
                 from = 0x33333333,
                 to = 0x11111111,
-                decoded = Data(
+                decoded =
+                Data(
                     portnum = PortNum.TEXT_MESSAGE_APP,
                     payload = "still alive".encodeToByteArray().toByteString(),
                 ),
@@ -370,10 +383,8 @@ class SdkIntegrationTest {
                 id = 200,
                 from = 0x88888888.toInt(),
                 to = 0x11111111,
-                decoded = Data(
-                    portnum = PortNum.UNKNOWN_APP,
-                    payload = "mystery data".encodeToByteArray().toByteString(),
-                ),
+                decoded =
+                Data(portnum = PortNum.UNKNOWN_APP, payload = "mystery data".encodeToByteArray().toByteString()),
             ),
         )
         runCurrent()
@@ -402,10 +413,8 @@ class SdkIntegrationTest {
                     id = 1000 + i,
                     from = 0x22222222,
                     to = 0x11111111,
-                    decoded = Data(
-                        portnum = PortNum.TEXT_MESSAGE_APP,
-                        payload = "msg$i".encodeToByteArray().toByteString(),
-                    ),
+                    decoded =
+                    Data(portnum = PortNum.TEXT_MESSAGE_APP, payload = "msg$i".encodeToByteArray().toByteString()),
                 ),
             )
         }
@@ -434,10 +443,7 @@ class SdkIntegrationTest {
                 id = 300,
                 from = 0x44444444,
                 to = 0x11111111,
-                decoded = Data(
-                    portnum = PortNum.TEXT_MESSAGE_APP,
-                    payload = okio.ByteString.EMPTY,
-                ),
+                decoded = Data(portnum = PortNum.TEXT_MESSAGE_APP, payload = okio.ByteString.EMPTY),
             ),
         )
         runCurrent()
@@ -454,25 +460,27 @@ class SdkIntegrationTest {
 
     private class MutableRadioClientAccessor : RadioClientAccessor {
         override val client = MutableStateFlow<RadioClient?>(null)
+
         override fun rebuildAndConnectAsync() = Unit
+
         override fun disconnect() = Unit
     }
 
-    private fun TestScope.connectedClient(
-        myNodeNum: Int = 0x11111111,
-    ): Pair<FakeRadioTransport, RadioClient> {
-        val transport = FakeRadioTransport(
-            identity = TransportIdentity("fake:integration"),
-            autoHandshake = true,
-            nodeNum = myNodeNum,
-        )
-        val client = RadioClient.Builder()
-            .transport(transport)
-            .storage(InMemoryStorageProvider())
-            .coroutineContext(backgroundScope.coroutineContext)
-            .autoSyncTimeOnConnect(false)
-            .presenceTimeout(2.seconds)
-            .build()
+    private fun TestScope.connectedClient(myNodeNum: Int = 0x11111111): Pair<FakeRadioTransport, RadioClient> {
+        val transport =
+            FakeRadioTransport(
+                identity = TransportIdentity("fake:integration"),
+                autoHandshake = true,
+                nodeNum = myNodeNum,
+            )
+        val client =
+            RadioClient.Builder()
+                .transport(transport)
+                .storage(InMemoryStorageProvider())
+                .coroutineContext(backgroundScope.coroutineContext)
+                .autoSyncTimeOnConnect(false)
+                .presenceTimeout(2.seconds)
+                .build()
         return transport to client
     }
 
@@ -483,9 +491,12 @@ class SdkIntegrationTest {
         serviceRepository: FakeServiceRepository = FakeServiceRepository(),
         topologyService: MeshTopologyService = MeshTopologyService(),
     ): SdkStateBridge = buildBridgeWithAccessor(
-        accessor = object : RadioClientAccessor {
+        accessor =
+        object : RadioClientAccessor {
             override val client = MutableStateFlow<RadioClient?>(client)
+
             override fun rebuildAndConnectAsync() = Unit
+
             override fun disconnect() = Unit
         },
         nodeRepository = nodeRepository,
@@ -505,16 +516,25 @@ class SdkIntegrationTest {
         serviceRepository = serviceRepository,
         nodeRepository = nodeRepository,
         packetRepository = lazyOf(packetRepository),
-        locationManager = object : MeshLocationManager {
+        locationManager =
+        object : MeshLocationManager {
             override fun start(scope: CoroutineScope, sendPositionFn: (Position) -> Unit) = Unit
+
             override fun stop() = Unit
         },
         topologyService = topologyService,
         uiPrefs = FakeUiPrefs(),
-        dispatchers = CoroutineDispatchers(
-            io = backgroundScope.coroutineContext[kotlin.coroutines.ContinuationInterceptor] as kotlinx.coroutines.CoroutineDispatcher,
-            main = backgroundScope.coroutineContext[kotlin.coroutines.ContinuationInterceptor] as kotlinx.coroutines.CoroutineDispatcher,
-            default = backgroundScope.coroutineContext[kotlin.coroutines.ContinuationInterceptor] as kotlinx.coroutines.CoroutineDispatcher,
+        dispatchers =
+        CoroutineDispatchers(
+            io =
+            backgroundScope.coroutineContext[kotlin.coroutines.ContinuationInterceptor]
+                as kotlinx.coroutines.CoroutineDispatcher,
+            main =
+            backgroundScope.coroutineContext[kotlin.coroutines.ContinuationInterceptor]
+                as kotlinx.coroutines.CoroutineDispatcher,
+            default =
+            backgroundScope.coroutineContext[kotlin.coroutines.ContinuationInterceptor]
+                as kotlinx.coroutines.CoroutineDispatcher,
         ),
     )
 }

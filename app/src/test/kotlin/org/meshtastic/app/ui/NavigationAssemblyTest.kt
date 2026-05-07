@@ -56,7 +56,9 @@ class NavigationAssemblyTest {
                     object : RadioConfigStateProvider {
                         override val packetResponseState = MutableStateFlow<ResponseState<Boolean>>(ResponseState.Empty)
                         override val pendingRouteName = MutableStateFlow("")
+
                         override fun requestConfigLoad(routeName: String) {}
+
                         override fun clearPacketResponse() {}
                     }
                 }

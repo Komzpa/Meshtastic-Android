@@ -112,7 +112,9 @@ class SettingsViewModel(
     val dbCacheLimit: StateFlow<Int> = databaseManager.cacheLimit
 
     fun setDbCacheLimit(limit: Int) {
-        databaseManager.setCacheLimit(limit.coerceIn(DatabaseConstants.MIN_CACHE_LIMIT, DatabaseConstants.MAX_CACHE_LIMIT))
+        databaseManager.setCacheLimit(
+            limit.coerceIn(DatabaseConstants.MIN_CACHE_LIMIT, DatabaseConstants.MAX_CACHE_LIMIT),
+        )
     }
 
     // Notifications

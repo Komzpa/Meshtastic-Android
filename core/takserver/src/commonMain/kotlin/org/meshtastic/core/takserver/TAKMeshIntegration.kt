@@ -129,11 +129,7 @@ class TAKMeshIntegration(
         val payload = TAKPacket.ADAPTER.encode(takPacket)
 
         val dataPacket =
-            DataPacket(
-                to = DataPacket.BROADCAST,
-                bytes = payload.toByteString(),
-                dataType = PortNum.ATAK_PLUGIN.value,
-            )
+            DataPacket(to = DataPacket.BROADCAST, bytes = payload.toByteString(), dataType = PortNum.ATAK_PLUGIN.value)
 
         radioController.sendMessage(dataPacket)
         Logger.d { "Forwarded CoT to mesh as TAKPacket: ${cotMessage.type}" }

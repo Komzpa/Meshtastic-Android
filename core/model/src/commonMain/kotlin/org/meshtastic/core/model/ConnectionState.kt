@@ -36,5 +36,6 @@ sealed interface ConnectionState {
     data object DeviceSleep : ConnectionState
 
     /** Whether the connection is usable for sending messages. */
-    val isConnected: Boolean get() = this is Connected
+    val isConnected: Boolean
+        get() = this is Connected
 }

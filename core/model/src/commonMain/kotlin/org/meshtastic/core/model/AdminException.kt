@@ -19,9 +19,9 @@ package org.meshtastic.core.model
 /**
  * Domain-level exception for admin (configuration) operations that fail for expected reasons.
  *
- * These failures are part of normal mesh operation — a remote node may be unreachable, the
- * session key may have expired, or the request may time out. They are NOT thrown for catastrophic
- * failures (transport gone, engine torn down) which throw standard exceptions.
+ * These failures are part of normal mesh operation — a remote node may be unreachable, the session key may have
+ * expired, or the request may time out. They are NOT thrown for catastrophic failures (transport gone, engine torn
+ * down) which throw standard exceptions.
  */
 sealed class AdminException(message: String) : Exception(message) {
 

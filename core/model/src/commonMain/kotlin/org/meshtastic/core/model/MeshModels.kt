@@ -185,4 +185,3 @@ data class EnvironmentMetrics(
             )
     }
 }
-

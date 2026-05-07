@@ -190,11 +190,7 @@ class GenericCoTHandler(private val radioController: RadioController, private va
             )
 
         val dataPacket =
-            DataPacket(
-                to = toNodeNum,
-                bytes = ackPacket.toByteString(),
-                dataType = PortNum.ATAK_FORWARDER.value,
-            )
+            DataPacket(to = toNodeNum, bytes = ackPacket.toByteString(), dataType = PortNum.ATAK_FORWARDER.value)
         radioController.sendMessage(dataPacket)
         Logger.d { "Sent fountain ACK for transfer $transferId" }
     }

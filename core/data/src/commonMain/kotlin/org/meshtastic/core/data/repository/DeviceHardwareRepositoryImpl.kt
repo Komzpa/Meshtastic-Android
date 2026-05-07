@@ -33,9 +33,7 @@ import org.meshtastic.core.model.util.TimeConstants
 import org.meshtastic.core.network.DeviceHardwareRemoteDataSource
 import org.meshtastic.core.repository.DeviceHardwareRepository
 
-/**
- * Resolves device hardware metadata from cache, remote data, and bundled JSON fallbacks.
- */
+/** Resolves device hardware metadata from cache, remote data, and bundled JSON fallbacks. */
 @Single
 class DeviceHardwareRepositoryImpl(
     private val remoteDataSource: DeviceHardwareRemoteDataSource,
@@ -194,7 +192,10 @@ class DeviceHardwareRepositoryImpl(
     private fun disambiguate(entities: List<DeviceHardwareEntity>, target: String?): DeviceHardwareEntity? {
         if (entities.isEmpty()) return null
 
-        val preferred = entities.sortedWith(compareBy<DeviceHardwareEntity> { it.isIncomplete() }.thenByDescending { it.lastUpdated })
+        val preferred =
+            entities.sortedWith(
+                compareBy<DeviceHardwareEntity> { it.isIncomplete() }.thenByDescending { it.lastUpdated },
+            )
 
         return if (target == null) {
             preferred.first()

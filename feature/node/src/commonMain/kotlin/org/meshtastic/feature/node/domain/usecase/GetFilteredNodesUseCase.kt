@@ -31,19 +31,19 @@ import org.meshtastic.proto.Config
 @Single
 open class GetFilteredNodesUseCase constructor(private val nodeRepository: NodeRepository) {
     @Suppress("CyclomaticComplexMethod", "LongMethod")
-    open operator fun invoke(filter: NodeFilterState, sort: NodeSortOption): Flow<List<Node>> =
-        combine(
-            nodeRepository.getNodes(
-                sort = sort,
-                filter = filter.filterText,
-                includeUnknown = filter.includeUnknown,
-                onlyOnline = filter.onlyOnline,
-                onlyDirect = filter.onlyDirect,
-            ),
-            nodeRepository.ourNodeInfo,
-        ) { list, ourNode ->
-            list to ourNode
-        }.map { (list, ourNode) ->
+    open operator fun invoke(filter: NodeFilterState, sort: NodeSortOption): Flow<List<Node>> = combine(
+        nodeRepository.getNodes(
+            sort = sort,
+            filter = filter.filterText,
+            includeUnknown = filter.includeUnknown,
+            onlyOnline = filter.onlyOnline,
+            onlyDirect = filter.onlyDirect,
+        ),
+        nodeRepository.ourNodeInfo,
+    ) { list, ourNode ->
+        list to ourNode
+    }
+        .map { (list, ourNode) ->
             list
                 .filter { node -> node.isIgnored == filter.showIgnored }
                 .filter { node ->

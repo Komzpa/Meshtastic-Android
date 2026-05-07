@@ -28,8 +28,8 @@ import org.meshtastic.proto.User
 /**
  * Use case for interacting with radio configuration components.
  *
- * Methods suspend until the device responds and return typed results directly.
- * On failure, they propagate [org.meshtastic.core.model.AdminException].
+ * Methods suspend until the device responds and return typed results directly. On failure, they propagate
+ * [org.meshtastic.core.model.AdminException].
  */
 @Suppress("TooManyFunctions")
 @Single
@@ -41,8 +41,7 @@ open class RadioConfigUseCase constructor(private val radioController: RadioCont
     }
 
     /** Read the owner from the target node. */
-    open suspend fun getOwner(destNum: Int): User =
-        radioController.getOwner(destNum)
+    open suspend fun getOwner(destNum: Int): User = radioController.getOwner(destNum)
 
     /** Write a config section on the target node. */
     open suspend fun setConfig(destNum: Int, config: Config) {
@@ -50,8 +49,7 @@ open class RadioConfigUseCase constructor(private val radioController: RadioCont
     }
 
     /** Read a config section from the target node. */
-    open suspend fun getConfig(destNum: Int, configType: Int): Config =
-        radioController.getConfig(destNum, configType)
+    open suspend fun getConfig(destNum: Int, configType: Int): Config = radioController.getConfig(destNum, configType)
 
     /** Write a module config section on the target node. */
     open suspend fun setModuleConfig(destNum: Int, config: ModuleConfig) {
@@ -63,12 +61,10 @@ open class RadioConfigUseCase constructor(private val radioController: RadioCont
         radioController.getModuleConfig(destNum, moduleConfigType)
 
     /** Read a channel by index from the target node. */
-    open suspend fun getChannel(destNum: Int, index: Int): Channel =
-        radioController.getChannel(destNum, index)
+    open suspend fun getChannel(destNum: Int, index: Int): Channel = radioController.getChannel(destNum, index)
 
     /** Read all channels from the target node. */
-    open suspend fun listChannels(destNum: Int): List<Channel> =
-        radioController.listChannels(destNum)
+    open suspend fun listChannels(destNum: Int): List<Channel> = radioController.listChannels(destNum)
 
     /** Write a channel on the target node. */
     open suspend fun setRemoteChannel(destNum: Int, channel: Channel) {
@@ -91,8 +87,7 @@ open class RadioConfigUseCase constructor(private val radioController: RadioCont
     }
 
     /** Read the ringtone from the target node. */
-    open suspend fun getRingtone(destNum: Int): String =
-        radioController.getRingtone(destNum)
+    open suspend fun getRingtone(destNum: Int): String = radioController.getRingtone(destNum)
 
     /** Write canned messages on the target node. */
     open suspend fun setCannedMessages(destNum: Int, messages: String) {
@@ -100,8 +95,7 @@ open class RadioConfigUseCase constructor(private val radioController: RadioCont
     }
 
     /** Read canned messages from the target node. */
-    open suspend fun getCannedMessages(destNum: Int): String =
-        radioController.getCannedMessages(destNum)
+    open suspend fun getCannedMessages(destNum: Int): String = radioController.getCannedMessages(destNum)
 
     /** Read device connection status from the target node. */
     open suspend fun getDeviceConnectionStatus(destNum: Int): DeviceConnectionStatus =

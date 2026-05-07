@@ -36,10 +36,10 @@ import org.koin.dsl.module
 import org.meshtastic.core.data.datasource.BootloaderOtaQuirksJsonDataSource
 import org.meshtastic.core.data.datasource.DeviceHardwareJsonDataSource
 import org.meshtastic.core.data.datasource.FirmwareReleaseJsonDataSource
+import org.meshtastic.core.data.radio.RadioClientAccessor
 import org.meshtastic.core.model.BootloaderOtaQuirk
 import org.meshtastic.core.model.NetworkDeviceHardware
 import org.meshtastic.core.model.NetworkFirmwareReleases
-import org.meshtastic.core.data.radio.RadioClientAccessor
 import org.meshtastic.core.network.HttpClientDefaults
 import org.meshtastic.core.network.KermitHttpLogger
 import org.meshtastic.core.network.repository.MQTTRepository

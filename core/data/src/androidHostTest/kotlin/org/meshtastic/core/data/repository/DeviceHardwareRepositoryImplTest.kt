@@ -19,7 +19,6 @@ package org.meshtastic.core.data.repository
 import dev.mokkery.MockMode
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
-import dev.mokkery.answering.throws
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.mock
@@ -46,7 +45,6 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -77,23 +75,26 @@ class DeviceHardwareRepositoryImplTest {
         jsonDataSource = mock(MockMode.autofill)
         quirksJsonDataSource = mock(MockMode.autofill)
 
-        everySuspend { apiService.getDeviceHardware() } calls {
-            remoteCallCount += 1
-            emptyList()
-        }
-        every { jsonDataSource.loadDeviceHardwareFromJsonAsset() } calls {
-            jsonCallCount += 1
-            emptyList()
-        }
+        everySuspend { apiService.getDeviceHardware() } calls
+            {
+                remoteCallCount += 1
+                emptyList()
+            }
+        every { jsonDataSource.loadDeviceHardwareFromJsonAsset() } calls
+            {
+                jsonCallCount += 1
+                emptyList()
+            }
         every { quirksJsonDataSource.loadBootloaderOtaQuirksFromJsonAsset() } returns emptyList()
 
-        repository = DeviceHardwareRepositoryImpl(
-            remoteDataSource = DeviceHardwareRemoteDataSource(apiService, dispatchers),
-            localDataSource = DeviceHardwareLocalDataSource(dbProvider, dispatchers),
-            jsonDataSource = jsonDataSource,
-            bootloaderOtaQuirksJsonDataSource = quirksJsonDataSource,
-            dispatchers = dispatchers,
-        )
+        repository =
+            DeviceHardwareRepositoryImpl(
+                remoteDataSource = DeviceHardwareRemoteDataSource(apiService, dispatchers),
+                localDataSource = DeviceHardwareLocalDataSource(dbProvider, dispatchers),
+                jsonDataSource = jsonDataSource,
+                bootloaderOtaQuirksJsonDataSource = quirksJsonDataSource,
+                dispatchers = dispatchers,
+            )
     }
 
     @AfterTest
@@ -113,20 +114,21 @@ class DeviceHardwareRepositoryImplTest {
     }
 
     @Test
-    fun `disambiguates cached variants by target ignoring case and preserves reported target`() = runTest(testDispatcher) {
-        cacheHardware(
-            hardware(hwModel = 7, target = "t-beam", displayName = "Beam"),
-            hardware(hwModel = 7, target = "t-deck", displayName = "Deck"),
-        )
+    fun `disambiguates cached variants by target ignoring case and preserves reported target`() =
+        runTest(testDispatcher) {
+            cacheHardware(
+                hardware(hwModel = 7, target = "t-beam", displayName = "Beam"),
+                hardware(hwModel = 7, target = "t-deck", displayName = "Deck"),
+            )
 
-        val result = repository.getDeviceHardwareByModel(hwModel = 7, target = "T-DECK")
-        val device = result.getOrNull()
+            val result = repository.getDeviceHardwareByModel(hwModel = 7, target = "T-DECK")
+            val device = result.getOrNull()
 
-        assertNotNull(device)
-        assertEquals("Deck", device.displayName)
-        assertEquals("T-DECK", device.platformioTarget)
-        assertEquals(0, remoteCallCount)
-    }
+            assertNotNull(device)
+            assertEquals("Deck", device.displayName)
+            assertEquals("T-DECK", device.platformioTarget)
+            assertEquals(0, remoteCallCount)
+        }
 
     @Test
     fun `falls back to cached target lookup when model cache is empty`() = runTest(testDispatcher) {
@@ -143,10 +145,11 @@ class DeviceHardwareRepositoryImplTest {
     @Test
     fun `force refresh clears cache and replaces it with remote data`() = runTest(testDispatcher) {
         cacheHardware(hardware(hwModel = 5, target = "old-target", displayName = "Old Cache"))
-        everySuspend { apiService.getDeviceHardware() } calls {
-            remoteCallCount += 1
-            listOf(hardware(hwModel = 5, target = "new-target", displayName = "Remote Fresh"))
-        }
+        everySuspend { apiService.getDeviceHardware() } calls
+            {
+                remoteCallCount += 1
+                listOf(hardware(hwModel = 5, target = "new-target", displayName = "Remote Fresh"))
+            }
 
         val result = repository.getDeviceHardwareByModel(hwModel = 5, forceRefresh = true)
         val cachedAfterRefresh = dbProvider.currentDb.value.deviceHardwareDao().getByHwModel(5)
@@ -162,10 +165,11 @@ class DeviceHardwareRepositoryImplTest {
             hardware(hwModel = 9, target = "stale", displayName = "Stale Cache"),
             lastUpdated = nowMillis - TimeConstants.ONE_DAY.inWholeMilliseconds - 1,
         )
-        everySuspend { apiService.getDeviceHardware() } calls {
-            remoteCallCount += 1
-            listOf(hardware(hwModel = 9, target = "fresh", displayName = "Fresh Remote"))
-        }
+        everySuspend { apiService.getDeviceHardware() } calls
+            {
+                remoteCallCount += 1
+                listOf(hardware(hwModel = 9, target = "fresh", displayName = "Fresh Remote"))
+            }
 
         val result = repository.getDeviceHardwareByModel(hwModel = 9)
 
@@ -180,10 +184,11 @@ class DeviceHardwareRepositoryImplTest {
             hardware(hwModel = 10, target = "complete", displayName = "Stale Complete"),
             lastUpdated = nowMillis - TimeConstants.ONE_DAY.inWholeMilliseconds - 1,
         )
-        everySuspend { apiService.getDeviceHardware() } calls {
-            remoteCallCount += 1
-            throw IllegalStateException("network down")
-        }
+        everySuspend { apiService.getDeviceHardware() } calls
+            {
+                remoteCallCount += 1
+                throw IllegalStateException("network down")
+            }
 
         val result = repository.getDeviceHardwareByModel(hwModel = 10)
 
@@ -199,14 +204,16 @@ class DeviceHardwareRepositoryImplTest {
             hardware(hwModel = 11, target = "broken", displayName = "", images = emptyList()),
             lastUpdated = nowMillis - TimeConstants.ONE_DAY.inWholeMilliseconds - 1,
         )
-        everySuspend { apiService.getDeviceHardware() } calls {
-            remoteCallCount += 1
-            throw IllegalStateException("network down")
-        }
-        every { jsonDataSource.loadDeviceHardwareFromJsonAsset() } calls {
-            jsonCallCount += 1
-            listOf(hardware(hwModel = 11, target = "json-target", displayName = "Bundled Json"))
-        }
+        everySuspend { apiService.getDeviceHardware() } calls
+            {
+                remoteCallCount += 1
+                throw IllegalStateException("network down")
+            }
+        every { jsonDataSource.loadDeviceHardwareFromJsonAsset() } calls
+            {
+                jsonCallCount += 1
+                listOf(hardware(hwModel = 11, target = "json-target", displayName = "Bundled Json"))
+            }
 
         val result = repository.getDeviceHardwareByModel(hwModel = 11)
 
@@ -218,13 +225,14 @@ class DeviceHardwareRepositoryImplTest {
     @Test
     fun `applies bootloader quirks to cached hardware`() = runTest(testDispatcher) {
         cacheHardware(hardware(hwModel = 12, target = "quirky", displayName = "Quirky"))
-        every { quirksJsonDataSource.loadBootloaderOtaQuirksFromJsonAsset() } returns listOf(
-            BootloaderOtaQuirk(
-                hwModel = 12,
-                requiresBootloaderUpgradeForOta = true,
-                infoUrl = "https://example.invalid/bootloader",
-            ),
-        )
+        every { quirksJsonDataSource.loadBootloaderOtaQuirksFromJsonAsset() } returns
+            listOf(
+                BootloaderOtaQuirk(
+                    hwModel = 12,
+                    requiresBootloaderUpgradeForOta = true,
+                    infoUrl = "https://example.invalid/bootloader",
+                ),
+            )
 
         val result = repository.getDeviceHardwareByModel(hwModel = 12)
         val device = result.getOrNull()
@@ -236,10 +244,11 @@ class DeviceHardwareRepositoryImplTest {
 
     @Test
     fun `returns success null when remote data does not contain requested model`() = runTest(testDispatcher) {
-        everySuspend { apiService.getDeviceHardware() } calls {
-            remoteCallCount += 1
-            listOf(hardware(hwModel = 99, target = "other", displayName = "Other"))
-        }
+        everySuspend { apiService.getDeviceHardware() } calls
+            {
+                remoteCallCount += 1
+                listOf(hardware(hwModel = 99, target = "other", displayName = "Other"))
+            }
 
         val result = repository.getDeviceHardwareByModel(hwModel = 13)
 
@@ -251,10 +260,11 @@ class DeviceHardwareRepositoryImplTest {
 
     @Test
     fun `uses target lookup after remote fetch when requested model is absent`() = runTest(testDispatcher) {
-        everySuspend { apiService.getDeviceHardware() } calls {
-            remoteCallCount += 1
-            listOf(hardware(hwModel = 77, target = "shared-target", displayName = "Remote Target Match"))
-        }
+        everySuspend { apiService.getDeviceHardware() } calls
+            {
+                remoteCallCount += 1
+                listOf(hardware(hwModel = 77, target = "shared-target", displayName = "Remote Target Match"))
+            }
 
         val result = repository.getDeviceHardwareByModel(hwModel = 14, target = "shared-target")
         val device = result.getOrNull()
@@ -267,14 +277,16 @@ class DeviceHardwareRepositoryImplTest {
 
     @Test
     fun `returns failure when both remote and bundled json sources fail`() = runTest(testDispatcher) {
-        everySuspend { apiService.getDeviceHardware() } calls {
-            remoteCallCount += 1
-            throw IllegalStateException("network down")
-        }
-        every { jsonDataSource.loadDeviceHardwareFromJsonAsset() } calls {
-            jsonCallCount += 1
-            throw IllegalArgumentException("missing asset")
-        }
+        everySuspend { apiService.getDeviceHardware() } calls
+            {
+                remoteCallCount += 1
+                throw IllegalStateException("network down")
+            }
+        every { jsonDataSource.loadDeviceHardwareFromJsonAsset() } calls
+            {
+                jsonCallCount += 1
+                throw IllegalArgumentException("missing asset")
+            }
 
         val result = repository.getDeviceHardwareByModel(hwModel = 15)
 
@@ -285,7 +297,9 @@ class DeviceHardwareRepositoryImplTest {
     }
 
     private suspend fun cacheHardware(vararg hardware: NetworkDeviceHardware, lastUpdated: Long = nowMillis) {
-        dbProvider.currentDb.value.deviceHardwareDao().insertAll(hardware.map { it.asEntity().copy(lastUpdated = lastUpdated) })
+        dbProvider.currentDb.value
+            .deviceHardwareDao()
+            .insertAll(hardware.map { it.asEntity().copy(lastUpdated = lastUpdated) })
     }
 
     private fun hardware(

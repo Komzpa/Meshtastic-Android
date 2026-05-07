@@ -22,10 +22,15 @@ import org.meshtastic.proto.ClientNotification
 /**
  * Composite interface for all radio operations.
  *
- * Consumers should prefer the focused sub-interfaces (for example [MessageSender] and [RemoteAdmin]) for new code.
- * This super-interface remains for backward compatibility with existing injections.
+ * Consumers should prefer the focused sub-interfaces (for example [MessageSender] and [RemoteAdmin]) for new code. This
+ * super-interface remains for backward compatibility with existing injections.
  */
-interface RadioController : MessageSender, DeviceAdmin, RemoteAdmin, DeviceControl, DataRequester {
+interface RadioController :
+    MessageSender,
+    DeviceAdmin,
+    RemoteAdmin,
+    DeviceControl,
+    DataRequester {
     /**
      * Flow of notifications from the radio client.
      *

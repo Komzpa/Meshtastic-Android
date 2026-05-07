@@ -24,13 +24,15 @@ import org.meshtastic.proto.User
 /**
  * Receiver interface for batched admin writes inside an [DeviceAdmin.editSettings] block.
  *
- * Methods queue writes without awaiting individual acknowledgements. The enclosing
- * `editSettings` call handles `begin_edit_settings` / `commit_edit_settings` framing so
- * the device applies all writes atomically.
+ * Methods queue writes without awaiting individual acknowledgements. The enclosing `editSettings` call handles
+ * `begin_edit_settings` / `commit_edit_settings` framing so the device applies all writes atomically.
  */
 interface DeviceAdminEdit {
     suspend fun setConfig(config: Config)
+
     suspend fun setModuleConfig(config: ModuleConfig)
+
     suspend fun setOwner(user: User)
+
     suspend fun setChannel(channel: Channel)
 }

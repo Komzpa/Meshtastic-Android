@@ -70,7 +70,13 @@ abstract class CommonPacketRepositoryTest {
 
     @Test
     fun `savePacket persists and retrieves waypoints`() = runTest(testDispatcher) {
-        val packet = DataPacket(to = DataPacket.BROADCAST, bytes = ByteString.EMPTY, dataType = PortNum.TEXT_MESSAGE_APP.value, id = 123)
+        val packet =
+            DataPacket(
+                to = DataPacket.BROADCAST,
+                bytes = ByteString.EMPTY,
+                dataType = PortNum.TEXT_MESSAGE_APP.value,
+                id = 123,
+            )
 
         repository.savePacket(myNodeNum, broadcastContact, packet, 1000L)
 
@@ -78,15 +84,19 @@ abstract class CommonPacketRepositoryTest {
     }
 
     @Test
-    fun `clearAllUnreadCounts works with real DB`() = runTest(testDispatcher) {
-        repository.clearAllUnreadCounts()
-    }
+    fun `clearAllUnreadCounts works with real DB`() = runTest(testDispatcher) { repository.clearAllUnreadCounts() }
 
     @Test
     fun `getMessagesFrom limit keeps newest messages within boundary`() = runTest(testDispatcher) {
         val contact = "1!abcd1234"
         repeat(55) { index ->
-            saveTextPacket(contact = contact, id = index + 1, receivedTime = 1_000L + index, text = "Message $index", read = false)
+            saveTextPacket(
+                contact = contact,
+                id = index + 1,
+                receivedTime = 1_000L + index,
+                text = "Message $index",
+                read = false,
+            )
         }
 
         val messages = repository.getMessagesFrom(contact = contact, limit = 50, getNode = ::lookupNode).first()
@@ -154,7 +164,8 @@ abstract class CommonPacketRepositoryTest {
         assertEquals(replyId, reactions.single().replyId)
         assertEquals("👍", reactions.single().emoji)
 
-        val messageUuid = repository.getMessagesFrom(contact = contact, getNode = ::lookupNode).first().single().uuid
+        val messageUuid =
+            repository.getMessagesFrom(contact = contact, getNode = ::lookupNode).first().single().uuid
         repository.deleteMessages(listOf(messageUuid))
 
         assertTrue(repository.findReactionsWithId(replyId).isEmpty())
@@ -164,7 +175,12 @@ abstract class CommonPacketRepositoryTest {
     @Test
     fun `getWaypoints preserves channel data for filtering`() = runTest(testDispatcher) {
         saveWaypointPacket(contact = broadcastContact, channel = 0, waypointId = 101, receivedTime = 1_000L)
-        saveWaypointPacket(contact = "2${DataPacket.nodeNumToId(DataPacket.BROADCAST)}", channel = 2, waypointId = 202, receivedTime = 2_000L)
+        saveWaypointPacket(
+            contact = "2${DataPacket.nodeNumToId(DataPacket.BROADCAST)}",
+            channel = 2,
+            waypointId = 202,
+            receivedTime = 2_000L,
+        )
         saveTextPacket(contact = broadcastContact, id = 77, receivedTime = 3_000L)
 
         val waypoints = repository.getWaypoints().first()
@@ -211,11 +227,17 @@ abstract class CommonPacketRepositoryTest {
 
     @Test
     fun `concurrent writes keep all packets intact`() = runTest {
-        val concurrentRepository = PacketRepositoryImpl(
-            dbManager = dbProvider,
-            dispatchers = CoroutineDispatchers(main = testDispatcher, io = Dispatchers.Default, default = Dispatchers.Default),
-            nodeRepository = nodeRepository,
-        )
+        val concurrentRepository =
+            PacketRepositoryImpl(
+                dbManager = dbProvider,
+                dispatchers =
+                CoroutineDispatchers(
+                    main = testDispatcher,
+                    io = Dispatchers.Default,
+                    default = Dispatchers.Default,
+                ),
+                nodeRepository = nodeRepository,
+            )
         val contact = "4!concur00"
 
         coroutineScope {
@@ -264,7 +286,12 @@ abstract class CommonPacketRepositoryTest {
         repository.savePacket(
             myNodeNum = myNodeNum,
             contactKey = contact,
-            packet = DataPacket(to = DataPacket.BROADCAST, channel = channel, waypoint = Waypoint(id = waypointId, name = "Waypoint $waypointId")),
+            packet =
+            DataPacket(
+                to = DataPacket.BROADCAST,
+                channel = channel,
+                waypoint = Waypoint(id = waypointId, name = "Waypoint $waypointId"),
+            ),
             receivedTime = receivedTime,
         )
     }
@@ -284,5 +311,6 @@ abstract class CommonPacketRepositoryTest {
         channel = channel,
     )
 
-    private fun lookupNode(userId: String?): Node = Node(num = 0, user = User(id = userId.orEmpty(), long_name = userId.orEmpty()))
+    private fun lookupNode(userId: String?): Node =
+        Node(num = 0, user = User(id = userId.orEmpty(), long_name = userId.orEmpty()))
 }

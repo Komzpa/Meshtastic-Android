@@ -106,7 +106,8 @@ class ConnectionsViewModel(
 
                 is ConnectionState.Connecting,
                 is ConnectionState.Configuring,
-                is ConnectionState.Reconnecting -> ConnectionStatus.CONNECTING
+                is ConnectionState.Reconnecting,
+                -> ConnectionStatus.CONNECTING
 
                 ConnectionState.Disconnected -> ConnectionStatus.NOT_CONNECTED
 

@@ -26,10 +26,11 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.KoinViewModel
+import org.meshtastic.core.model.CongestionLevel
+import org.meshtastic.core.model.DeviceAdmin
 import org.meshtastic.core.model.DeviceType
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.NodeSortOption
-import org.meshtastic.core.model.DeviceAdmin
 import org.meshtastic.core.repository.NodeRepository
 import org.meshtastic.core.repository.RadioConfigRepository
 import org.meshtastic.core.repository.RadioPrefs
@@ -39,7 +40,6 @@ import org.meshtastic.feature.node.detail.NodeManagementActions
 import org.meshtastic.feature.node.domain.usecase.GetFilteredNodesUseCase
 import org.meshtastic.proto.ChannelSet
 import org.meshtastic.proto.Config
-import org.meshtastic.core.model.CongestionLevel
 
 @Suppress("LongParameterList")
 @KoinViewModel
@@ -94,12 +94,12 @@ class NodeListViewModel(
         }
 
     private val nodeFilter: Flow<NodeFilterState> =
-        combine(_nodeFilterText, filterToggles, nodeFilterPreferences.excludeMqtt, nodeFilterPreferences.maxDistanceKm) {
-                filterText,
-                filterToggles,
-                excludeMqtt,
-                maxDistanceKm,
-            ->
+        combine(
+            _nodeFilterText,
+            filterToggles,
+            nodeFilterPreferences.excludeMqtt,
+            nodeFilterPreferences.maxDistanceKm,
+        ) { filterText, filterToggles, excludeMqtt, maxDistanceKm ->
             NodeFilterState(
                 filterText = filterText,
                 includeUnknown = filterToggles.includeUnknown,
@@ -182,7 +182,13 @@ data class NodeFilterState(
 ) {
     /** True if any user-applied filter is narrowing the visible node set. */
     val isActive: Boolean
-        get() = filterText.isNotEmpty() || excludeInfrastructure || onlyOnline || onlyDirect || excludeMqtt || maxDistanceKm != null
+        get() =
+            filterText.isNotEmpty() ||
+                excludeInfrastructure ||
+                onlyOnline ||
+                onlyDirect ||
+                excludeMqtt ||
+                maxDistanceKm != null
 }
 
 data class NodeFilterToggles(

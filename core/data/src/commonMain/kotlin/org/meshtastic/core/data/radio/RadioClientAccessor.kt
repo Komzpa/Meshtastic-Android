@@ -22,10 +22,9 @@ import org.meshtastic.sdk.RadioClient
 /**
  * Platform-agnostic accessor for the active [RadioClient] instance.
  *
- * Implemented by platform-specific providers (Android's `RadioClientProvider`, Desktop's
- * `DesktopRadioClientProvider`) that handle transport creation and lifecycle. The shared
- * [SdkRadioController] and [SdkStateBridge] depend on this interface rather than any
- * concrete provider.
+ * Implemented by platform-specific providers (Android's `RadioClientProvider`, Desktop's `DesktopRadioClientProvider`)
+ * that handle transport creation and lifecycle. The shared [SdkRadioController] and [SdkStateBridge] depend on this
+ * interface rather than any concrete provider.
  */
 interface RadioClientAccessor {
     /** Active [RadioClient], or `null` when disconnected or between connections. */

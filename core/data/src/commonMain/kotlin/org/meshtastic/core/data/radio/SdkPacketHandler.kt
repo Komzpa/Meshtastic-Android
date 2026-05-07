@@ -32,9 +32,9 @@ import org.meshtastic.proto.ToRadio
 /**
  * SDK-backed [PacketHandler] that sends packets through the active [RadioClient].
  *
- * Replaces the monolithic [PacketHandlerImpl] which routed through the old
- * `RadioInterfaceService.sendToRadio()` pipeline. This thin implementation only supports the
- * `sendToRadio` surface needed by MQTT, XModem, and History managers.
+ * Replaces the monolithic [PacketHandlerImpl] which routed through the old `RadioInterfaceService.sendToRadio()`
+ * pipeline. This thin implementation only supports the `sendToRadio` surface needed by MQTT, XModem, and History
+ * managers.
  *
  * Queue management (QueueStatus, packet ordering) is handled internally by the SDK engine.
  */
@@ -55,10 +55,12 @@ class SdkPacketHandler(
             return
         }
         // Non-packet ToRadio (mqttClientProxyMessage, xmodemPacket) — send as raw frame.
-        val client = accessor.client.value ?: run {
-            Logger.w { "SdkPacketHandler: no client, dropping non-packet ToRadio" }
-            return
-        }
+        val client =
+            accessor.client.value
+                ?: run {
+                    Logger.w { "SdkPacketHandler: no client, dropping non-packet ToRadio" }
+                    return
+                }
         scope.launch {
             runCatching { client.sendRaw(p) }
                 .onFailure { e -> Logger.w(e) { "SdkPacketHandler: sendRaw(ToRadio) failed" } }
@@ -66,10 +68,12 @@ class SdkPacketHandler(
     }
 
     override fun sendToRadio(packet: MeshPacket) {
-        val client = accessor.client.value ?: run {
-            Logger.w { "SdkPacketHandler: no client, dropping packet id=${packet.id}" }
-            return
-        }
+        val client =
+            accessor.client.value
+                ?: run {
+                    Logger.w { "SdkPacketHandler: no client, dropping packet id=${packet.id}" }
+                    return
+                }
         client.send(packet)
         serviceRepository.emitMeshActivity(MeshActivity.Send)
     }

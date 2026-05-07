@@ -26,34 +26,31 @@ import org.meshtastic.core.repository.ServiceRepository
 import org.meshtastic.proto.ClientNotification
 import org.meshtastic.sdk.MeshEvent
 
-internal class SdkEventBridge(
-    private val serviceRepository: ServiceRepository,
-) {
+internal class SdkEventBridge(private val serviceRepository: ServiceRepository) {
     fun observe(accessor: RadioClientAccessor, scope: CoroutineScope) {
-        accessor.client
-            .flatMapLatest { client -> client?.events ?: emptyFlow() }
-            .onEach(::handleEvent)
-            .launchIn(scope)
+        accessor.client.flatMapLatest { client -> client?.events ?: emptyFlow() }.onEach(::handleEvent).launchIn(scope)
     }
 
     internal fun handleEvent(event: MeshEvent) {
         when (event) {
             is MeshEvent.DeviceRebooted -> {
                 Logger.i { "[SdkBridge] Device rebooted" }
-                serviceRepository.setClientNotification(
-                    ClientNotification(message = "Device rebooted"),
-                )
+                serviceRepository.setClientNotification(ClientNotification(message = "Device rebooted"))
             }
 
             is MeshEvent.CongestionWarning -> {
+                val m = event.metrics
                 Logger.w {
-                    "[SdkBridge] Congestion warning: level=${event.metrics.level}, airUtil=${event.metrics.airUtilTx}%, channelUtil=${event.metrics.channelUtil}%"
+                    "[SdkBridge] Congestion warning: level=${m.level}, " +
+                        "airUtil=${m.airUtilTx}%, channelUtil=${m.channelUtil}%"
                 }
                 serviceRepository.setCongestionLevel(event.metrics.level)
             }
 
             is MeshEvent.SecurityWarning -> Logger.w { "[SdkBridge] Security warning: $event" }
+
             is MeshEvent.PacketsDropped -> Logger.w { "[SdkBridge] Packets dropped: ${event.count} from ${event.flow}" }
+
             else -> Logger.d { "[SdkBridge] Event: $event" }
         }
     }

@@ -69,11 +69,7 @@ class MessageDeliveryTrackerTest {
         advanceUntilIdle()
 
         assertEquals(
-            listOf(
-                MessageStatus.ENROUTE,
-                MessageStatus.DELIVERED,
-                MessageStatus.DELIVERED,
-            ),
+            listOf(MessageStatus.ENROUTE, MessageStatus.DELIVERED, MessageStatus.DELIVERED),
             updates.getValue(101),
         )
 
@@ -127,14 +123,7 @@ class MessageDeliveryTrackerTest {
         runCurrent()
         advanceUntilIdle()
 
-        assertEquals(
-            listOf(
-                MessageStatus.ENROUTE,
-                MessageStatus.ENROUTE,
-                MessageStatus.ERROR,
-            ),
-            updates.getValue(103),
-        )
+        assertEquals(listOf(MessageStatus.ENROUTE, MessageStatus.ENROUTE, MessageStatus.ERROR), updates.getValue(103))
 
         client.disconnect()
     }
@@ -264,15 +253,13 @@ class MessageDeliveryTrackerTest {
         client.disconnect()
     }
 
-    private fun TestScope.buildClient(
-        transport: FakeRadioTransport,
-        sendTimeout: Duration = 5.seconds,
-    ): RadioClient = RadioClient.Builder()
-        .transport(transport)
-        .storage(InMemoryStorageProvider())
-        .coroutineContext(backgroundScope.coroutineContext)
-        .sendTimeout(sendTimeout)
-        .build()
+    private fun TestScope.buildClient(transport: FakeRadioTransport, sendTimeout: Duration = 5.seconds): RadioClient =
+        RadioClient.Builder()
+            .transport(transport)
+            .storage(InMemoryStorageProvider())
+            .coroutineContext(backgroundScope.coroutineContext)
+            .sendTimeout(sendTimeout)
+            .build()
 
     private fun TestScope.buildTracker(packetRepository: PacketRepository): MessageDeliveryTracker {
         val dispatcher = StandardTestDispatcher(testScheduler)
@@ -282,20 +269,21 @@ class MessageDeliveryTrackerTest {
         )
     }
 
-    private fun mockPacketRepository(
-        updates: MutableMap<Int, MutableList<MessageStatus>>,
-    ): PacketRepository {
+    private fun mockPacketRepository(updates: MutableMap<Int, MutableList<MessageStatus>>): PacketRepository {
         val repository = mock<PacketRepository>(MockMode.autofill)
 
-        everySuspend { repository.getPacketByPacketId(any()) } calls { args ->
-            DataPacket(bytes = null, dataType = 0, id = args.arg<Int>(0))
-        }
-        everySuspend { repository.updateMessageStatus(any<Int>(), any<MessageStatus>()) } calls { args ->
-            updates.record(args.arg<Int>(0), args.arg<MessageStatus>(1))
-        }
-        everySuspend { repository.updateMessageStatus(any<DataPacket>(), any<MessageStatus>()) } calls { args ->
-            updates.record(args.arg<DataPacket>(0).id, args.arg<MessageStatus>(1))
-        }
+        everySuspend { repository.getPacketByPacketId(any()) } calls
+            { args ->
+                DataPacket(bytes = null, dataType = 0, id = args.arg<Int>(0))
+            }
+        everySuspend { repository.updateMessageStatus(any<Int>(), any<MessageStatus>()) } calls
+            { args ->
+                updates.record(args.arg<Int>(0), args.arg<MessageStatus>(1))
+            }
+        everySuspend { repository.updateMessageStatus(any<DataPacket>(), any<MessageStatus>()) } calls
+            { args ->
+                updates.record(args.arg<DataPacket>(0).id, args.arg<MessageStatus>(1))
+            }
 
         return repository
     }
@@ -304,19 +292,14 @@ class MessageDeliveryTrackerTest {
         getOrPut(packetId) { mutableListOf() }.add(status)
     }
 
-    private fun fakeTransport(identity: String) = FakeRadioTransport(
-        identity = TransportIdentity(identity),
-        autoHandshake = true,
-    )
+    private fun fakeTransport(identity: String) =
+        FakeRadioTransport(identity = TransportIdentity(identity), autoHandshake = true)
 
     private fun unicastPacket(text: String) = MeshPacket(
         to = 0x12345678,
         channel = 0,
         want_ack = true,
-        decoded = Data(
-            portnum = PortNum.TEXT_MESSAGE_APP,
-            payload = text.encodeToByteArray().toByteString(),
-        ),
+        decoded = Data(portnum = PortNum.TEXT_MESSAGE_APP, payload = text.encodeToByteArray().toByteString()),
     )
 
     private fun FakeRadioTransport.sentTextPackets(): List<MeshPacket> =

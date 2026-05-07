@@ -44,9 +44,7 @@ internal class SdkPacketBridge(
 
         accessor.client
             .flatMapLatest { client ->
-                client?.storeForward?.servers
-                    ?.map { servers -> servers.map { it.raw } }
-                    ?: flowOf(emptyList())
+                client?.storeForward?.servers?.map { servers -> servers.map { it.raw } } ?: flowOf(emptyList())
             }
             .onEach { servers -> serviceRepository.setStoreForwardServers(servers) }
             .launchIn(scope)
@@ -60,15 +58,11 @@ internal class SdkPacketBridge(
     internal suspend fun handleStoreForwardEvent(event: StoreForwardEvent) {
         when (event) {
             is StoreForwardEvent.ServerDiscovered -> {
-                Logger.i {
-                    "[SdkBridge] S&F server discovered: ${DataPacket.nodeNumToDefaultId(event.nodeId.raw)}"
-                }
+                Logger.i { "[SdkBridge] S&F server discovered: ${DataPacket.nodeNumToDefaultId(event.nodeId.raw)}" }
             }
 
             is StoreForwardEvent.ServerLost -> {
-                Logger.i {
-                    "[SdkBridge] S&F server lost: ${DataPacket.nodeNumToDefaultId(event.nodeId.raw)}"
-                }
+                Logger.i { "[SdkBridge] S&F server lost: ${DataPacket.nodeNumToDefaultId(event.nodeId.raw)}" }
             }
 
             is StoreForwardEvent.HistoryReplayStarted -> {
@@ -86,9 +80,7 @@ internal class SdkPacketBridge(
             }
 
             is StoreForwardEvent.Heartbeat -> {
-                Logger.d {
-                    "[SdkBridge] S&F heartbeat from ${DataPacket.nodeNumToDefaultId(event.server.raw)}"
-                }
+                Logger.d { "[SdkBridge] S&F heartbeat from ${DataPacket.nodeNumToDefaultId(event.server.raw)}" }
             }
 
             is StoreForwardEvent.SfppLinkProvided -> {

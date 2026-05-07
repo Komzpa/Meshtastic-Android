@@ -30,7 +30,6 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.meshtastic.core.di.CoroutineDispatchers
 import org.meshtastic.core.model.AdminException
-import org.meshtastic.core.model.DataPacket
 import org.meshtastic.core.model.Position
 import org.meshtastic.core.model.TelemetryType
 import org.meshtastic.core.repository.MeshLocationManager
@@ -71,7 +70,8 @@ class SdkRadioControllerTest {
             val deferred = async { fixture.controller.setLocalConfig(config) }
             runCurrent()
 
-            val request = fixture.transport.outboundPackets().drop(outboundBefore).last { adminOf(it)?.set_config == config }
+            val request =
+                fixture.transport.outboundPackets().drop(outboundBefore).last { adminOf(it)?.set_config == config }
             assertTrue(request.want_ack)
             fixture.transport.injectRoutingAck(request.id)
             runCurrent()
@@ -92,7 +92,8 @@ class SdkRadioControllerTest {
             val deferred = async { fixture.controller.setRemoteChannel(destNum, channel) }
             runCurrent()
 
-            val request = fixture.transport.outboundPackets().drop(outboundBefore).last { adminOf(it)?.set_channel == channel }
+            val request =
+                fixture.transport.outboundPackets().drop(outboundBefore).last { adminOf(it)?.set_channel == channel }
             assertEquals(destNum, request.to)
             fixture.transport.injectRoutingAck(request.id, fromNode = destNum)
             runCurrent()
@@ -113,7 +114,8 @@ class SdkRadioControllerTest {
             val deferred = async { fixture.controller.setRemoteChannel(destNum, channel) }
             runCurrent()
 
-            val request = fixture.transport.outboundPackets().drop(outboundBefore).last { adminOf(it)?.set_channel == channel }
+            val request =
+                fixture.transport.outboundPackets().drop(outboundBefore).last { adminOf(it)?.set_channel == channel }
             assertEquals(destNum, request.to)
             fixture.transport.injectRoutingAck(request.id, fromNode = destNum)
             runCurrent()
@@ -178,13 +180,17 @@ class SdkRadioControllerTest {
         val fixture = connectedFixture()
         try {
             val destNum = 0x55667788
-            val position = Position(latitude = 37.1234567, longitude = -122.7654321, altitude = 42, time = 1_700_000_123)
+            val position =
+                Position(latitude = 37.1234567, longitude = -122.7654321, altitude = 42, time = 1_700_000_123)
             val outboundBefore = fixture.transport.outboundPackets().size
 
             fixture.controller.requestPosition(destNum, position)
             runCurrent()
 
-            val request = fixture.transport.outboundPackets().drop(outboundBefore).last { it.decoded?.portnum == PortNum.POSITION_APP }
+            val request =
+                fixture.transport.outboundPackets().drop(outboundBefore).last {
+                    it.decoded?.portnum == PortNum.POSITION_APP
+                }
             val sentPosition = org.meshtastic.proto.Position.ADAPTER.decode(request.decoded!!.payload)
             assertEquals(destNum, request.to)
             assertTrue(request.want_ack)
@@ -207,7 +213,10 @@ class SdkRadioControllerTest {
             val deferred = async { fixture.controller.setFixedPosition(destNum, position) }
             runCurrent()
 
-            val request = fixture.transport.outboundPackets().drop(outboundBefore).last { adminOf(it)?.set_fixed_position != null }
+            val request =
+                fixture.transport.outboundPackets().drop(outboundBefore).last {
+                    adminOf(it)?.set_fixed_position != null
+                }
             val sentPosition = adminOf(request)!!.set_fixed_position!!
             assertEquals(destNum, request.to)
             assertEquals(Position.degI(position.latitude), sentPosition.latitude_i)
@@ -233,8 +242,10 @@ class SdkRadioControllerTest {
             val deferred = async { fixture.controller.getConfig(destNum, AdminMessage.ConfigType.DEVICE_CONFIG.value) }
             runCurrent()
 
-            val request = fixture.transport.outboundPackets().drop(outboundBefore)
-                .last { adminOf(it)?.get_config_request == AdminMessage.ConfigType.DEVICE_CONFIG }
+            val request =
+                fixture.transport.outboundPackets().drop(outboundBefore).last {
+                    adminOf(it)?.get_config_request == AdminMessage.ConfigType.DEVICE_CONFIG
+                }
             fixture.transport.injectAdminResponse(
                 requestId = request.id,
                 response = AdminMessage(get_config_response = expected),
@@ -255,11 +266,15 @@ class SdkRadioControllerTest {
             val destNum = 0x11223344
             val expected = ModuleConfig(mqtt = ModuleConfig.MQTTConfig(enabled = true))
             val outboundBefore = fixture.transport.outboundPackets().size
-            val deferred = async { fixture.controller.getModuleConfig(destNum, AdminMessage.ModuleConfigType.MQTT_CONFIG.value) }
+            val deferred = async {
+                fixture.controller.getModuleConfig(destNum, AdminMessage.ModuleConfigType.MQTT_CONFIG.value)
+            }
             runCurrent()
 
-            val request = fixture.transport.outboundPackets().drop(outboundBefore)
-                .last { adminOf(it)?.get_module_config_request == AdminMessage.ModuleConfigType.MQTT_CONFIG }
+            val request =
+                fixture.transport.outboundPackets().drop(outboundBefore).last {
+                    adminOf(it)?.get_module_config_request == AdminMessage.ModuleConfigType.MQTT_CONFIG
+                }
             fixture.transport.injectAdminResponse(
                 requestId = request.id,
                 response = AdminMessage(get_module_config_response = expected),
@@ -283,15 +298,23 @@ class SdkRadioControllerTest {
 
             repeat(3) {
                 runCurrent()
-                val request = fixture.transport.outboundPackets().drop(outboundBefore).last { adminOf(it)?.get_channel_request != null }
+                val request =
+                    fixture.transport.outboundPackets().drop(outboundBefore).last {
+                        adminOf(it)?.get_channel_request != null
+                    }
                 assertEquals(destNum, request.to)
                 val wireIndex = adminOf(request)!!.get_channel_request!!
                 val channelIndex = wireIndex - 1
-                val channel = if (channelIndex < 2) {
-                    Channel(index = channelIndex, role = Channel.Role.PRIMARY, settings = ChannelSettings(name = "Channel $channelIndex"))
-                } else {
-                    Channel(index = channelIndex, role = Channel.Role.DISABLED)
-                }
+                val channel =
+                    if (channelIndex < 2) {
+                        Channel(
+                            index = channelIndex,
+                            role = Channel.Role.PRIMARY,
+                            settings = ChannelSettings(name = "Channel $channelIndex"),
+                        )
+                    } else {
+                        Channel(index = channelIndex, role = Channel.Role.DISABLED)
+                    }
                 fixture.transport.injectAdminResponse(
                     requestId = request.id,
                     response = AdminMessage(get_channel_response = channel),
@@ -317,7 +340,8 @@ class SdkRadioControllerTest {
             val deferred = async { fixture.controller.reboot(destNum) }
             runCurrent()
 
-            val request = fixture.transport.outboundPackets().drop(outboundBefore).last { adminOf(it)?.reboot_seconds == 0 }
+            val request =
+                fixture.transport.outboundPackets().drop(outboundBefore).last { adminOf(it)?.reboot_seconds == 0 }
             assertEquals(destNum, request.to)
             fixture.transport.injectRoutingAck(request.id, fromNode = destNum)
             runCurrent()
@@ -356,14 +380,17 @@ class SdkRadioControllerTest {
             val config = Config(device = Config.DeviceConfig(role = Config.DeviceConfig.Role.CLIENT))
             val outboundBefore = fixture.transport.outboundPackets().size
             val deferred = async {
-                assertFailsWith<AdminException.Unauthorized> {
-                    fixture.controller.setConfig(destNum, config)
-                }
+                assertFailsWith<AdminException.Unauthorized> { fixture.controller.setConfig(destNum, config) }
             }
             runCurrent()
 
-            val request = fixture.transport.outboundPackets().drop(outboundBefore).last { adminOf(it)?.set_config == config }
-            fixture.transport.injectRoutingError(request.id, Routing.Error.ADMIN_PUBLIC_KEY_UNAUTHORIZED, fromNode = destNum)
+            val request =
+                fixture.transport.outboundPackets().drop(outboundBefore).last { adminOf(it)?.set_config == config }
+            fixture.transport.injectRoutingError(
+                request.id,
+                Routing.Error.ADMIN_PUBLIC_KEY_UNAUTHORIZED,
+                fromNode = destNum,
+            )
             runCurrent()
 
             deferred.await()
@@ -373,28 +400,36 @@ class SdkRadioControllerTest {
     }
 
     private suspend fun TestScope.connectedFixture(myNodeNum: Int = 0x11111111): ControllerFixture {
-        val transport = FakeRadioTransport(
-            identity = TransportIdentity("fake:sdk-radio-controller"),
-            autoHandshake = true,
-            nodeNum = myNodeNum,
-        )
-        val client = RadioClient.Builder()
-            .transport(transport)
-            .storage(InMemoryStorageProvider())
-            .autoSyncTimeOnConnect(false)
-            .coroutineContext(backgroundScope.coroutineContext)
-            .rpcTimeout(60.seconds)
-            .sendTimeout(60.seconds)
-            .build()
-        val dispatcher = backgroundScope.coroutineContext[kotlin.coroutines.ContinuationInterceptor] as CoroutineDispatcher
-        val controller = SdkRadioController(
-            accessor = TestRadioClientAccessor(client),
-            serviceRepository = FakeServiceRepository(),
-            nodeRepository = FakeNodeRepository(),
-            locationManager = NoOpLocationManager,
-            deliveryTracker = MessageDeliveryTracker(lazyOf(mock<PacketRepository>(MockMode.autofill)), CoroutineDispatchers(dispatcher, dispatcher, dispatcher)),
-            radioPrefs = FakeRadioPrefs(),
-        )
+        val transport =
+            FakeRadioTransport(
+                identity = TransportIdentity("fake:sdk-radio-controller"),
+                autoHandshake = true,
+                nodeNum = myNodeNum,
+            )
+        val client =
+            RadioClient.Builder()
+                .transport(transport)
+                .storage(InMemoryStorageProvider())
+                .autoSyncTimeOnConnect(false)
+                .coroutineContext(backgroundScope.coroutineContext)
+                .rpcTimeout(60.seconds)
+                .sendTimeout(60.seconds)
+                .build()
+        val dispatcher =
+            backgroundScope.coroutineContext[kotlin.coroutines.ContinuationInterceptor] as CoroutineDispatcher
+        val controller =
+            SdkRadioController(
+                accessor = TestRadioClientAccessor(client),
+                serviceRepository = FakeServiceRepository(),
+                nodeRepository = FakeNodeRepository(),
+                locationManager = NoOpLocationManager,
+                deliveryTracker =
+                MessageDeliveryTracker(
+                    lazyOf(mock<PacketRepository>(MockMode.autofill)),
+                    CoroutineDispatchers(dispatcher, dispatcher, dispatcher),
+                ),
+                radioPrefs = FakeRadioPrefs(),
+            )
         client.connect()
         runCurrent()
         return ControllerFixture(controller = controller, transport = transport, client = client, myNodeNum = myNodeNum)

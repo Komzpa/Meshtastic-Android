@@ -26,9 +26,7 @@ import org.meshtastic.core.database.entity.QuickChatAction
 import org.meshtastic.core.di.CoroutineDispatchers
 import org.meshtastic.core.repository.QuickChatActionRepository
 
-/**
- * Manages persisted quick chat actions and their ordering.
- */
+/** Manages persisted quick chat actions and their ordering. */
 @Single
 class QuickChatActionRepositoryImpl(
     private val dbManager: DatabaseProvider,

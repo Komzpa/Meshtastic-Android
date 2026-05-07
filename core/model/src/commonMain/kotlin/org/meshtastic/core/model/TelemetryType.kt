@@ -19,8 +19,8 @@ package org.meshtastic.core.model
 /**
  * Typed enum for telemetry request categories.
  *
- * Ordinal values align with SDK telemetry dispatch ordering:
- * 0=Device, 1=Environment, 2=AirQuality, 3=Power, 4=LocalStats, 5=Health, 6=Host, 7=TrafficManagement.
+ * Ordinal values align with SDK telemetry dispatch ordering: 0=Device, 1=Environment, 2=AirQuality, 3=Power,
+ * 4=LocalStats, 5=Health, 6=Host, 7=TrafficManagement.
  */
 enum class TelemetryType {
     DEVICE,

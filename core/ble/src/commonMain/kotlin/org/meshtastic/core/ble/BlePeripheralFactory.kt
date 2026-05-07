@@ -12,7 +12,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program, if not, see <https://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.meshtastic.core.ble
 
@@ -21,19 +21,17 @@ import com.juul.kable.Peripheral
 /**
  * Build a Kable [Peripheral] for a previously saved BLE MAC address.
  *
- * Uses `autoConnect = true` (bonded-device path) since there is no live advertisement.
- * Platform-specific MTU negotiation and threading strategy are applied via [platformConfig].
+ * Uses `autoConnect = true` (bonded-device path) since there is no live advertisement. Platform-specific MTU
+ * negotiation and threading strategy are applied via [platformConfig].
  *
- * Intended for use in [RadioClientProvider][org.meshtastic.app.radio.RadioClientProvider]
- * when reconstructing a [BleTransport] from a persisted radio address.
+ * Intended for use in [RadioClientProvider][org.meshtastic.app.radio.RadioClientProvider] when reconstructing a
+ * [BleTransport] from a persisted radio address.
  *
- * SDK gap F: [org.meshtastic.sdk.transport.ble.BleTransport] currently requires a caller-supplied
- * [Peripheral] — it has no factory that accepts a MAC address string directly. This function
- * bridges that gap on the Android side until the SDK exposes a convenience constructor.
+ * SDK gap F: [org.meshtastic.sdk.transport.ble.BleTransport] currently requires a caller-supplied [Peripheral] — it has
+ * no factory that accepts a MAC address string directly. This function bridges that gap on the Android side until the
+ * SDK exposes a convenience constructor.
  */
 public fun buildPeripheralForSavedAddress(address: String): Peripheral {
     val device = MeshtasticBleDevice(address)
-    return createPeripheral(address) {
-        platformConfig(device, autoConnect = { true })
-    }
+    return createPeripheral(address) { platformConfig(device, autoConnect = { true }) }
 }

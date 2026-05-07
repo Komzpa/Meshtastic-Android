@@ -50,6 +50,7 @@ import org.meshtastic.core.model.MyNodeInfo
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.Position
 import org.meshtastic.core.model.RadioConfigStateProvider
+import org.meshtastic.core.model.ResponseState
 import org.meshtastic.core.repository.AnalyticsPrefs
 import org.meshtastic.core.repository.FileService
 import org.meshtastic.core.repository.HomoglyphPrefs
@@ -82,7 +83,6 @@ import org.meshtastic.proto.LocalConfig
 import org.meshtastic.proto.LocalModuleConfig
 import org.meshtastic.proto.ModuleConfig
 import org.meshtastic.proto.User
-import org.meshtastic.core.model.ResponseState
 
 /** Data class that represents the current RadioConfig state. */
 @androidx.compose.runtime.Immutable
@@ -127,7 +127,8 @@ open class RadioConfigViewModel(
     private val locationService: LocationService,
     private val fileService: FileService,
     private val mqttManager: MqttManager,
-) : ViewModel(), RadioConfigStateProvider {
+) : ViewModel(),
+    RadioConfigStateProvider {
     val analyticsAllowedFlow = analyticsPrefs.analyticsAllowed
 
     fun toggleAnalyticsAllowed() {
@@ -356,10 +357,15 @@ open class RadioConfigViewModel(
         writeAction("removeFixedPosition") { radioConfigUseCase.removeFixedPosition(destNum) }
     }
 
-    private val profileCoordinator = ProfileCoordinator(
-        fileService, importProfileUseCase, exportProfileUseCase,
-        exportSecurityConfigUseCase, installProfileUseCase, viewModelScope,
-    )
+    private val profileCoordinator =
+        ProfileCoordinator(
+            fileService,
+            importProfileUseCase,
+            exportProfileUseCase,
+            exportSecurityConfigUseCase,
+            installProfileUseCase,
+            viewModelScope,
+        )
 
     fun importProfile(uri: CommonUri, onResult: (DeviceProfile) -> Unit) {
         profileCoordinator.importProfile(uri, onResult)
@@ -381,17 +387,20 @@ open class RadioConfigViewModel(
     // region RadioConfigStateProvider implementation
 
     override val packetResponseState: StateFlow<ResponseState<Boolean>> =
-        _radioConfigState.map { it.responseState }
+        _radioConfigState
+            .map { it.responseState }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ResponseState.Empty)
 
     override val pendingRouteName: StateFlow<String> =
-        _radioConfigState.map { it.route?.name.orEmpty() }
+        _radioConfigState
+            .map { it.route?.name.orEmpty() }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "")
 
     override fun requestConfigLoad(routeName: String) {
-        val route = ConfigRoute.entries.find { it.name == routeName }
-            ?: ModuleRoute.entries.find { it.name == routeName }
-            ?: return
+        val route =
+            ConfigRoute.entries.find { it.name == routeName }
+                ?: ModuleRoute.entries.find { it.name == routeName }
+                ?: return
         setResponseStateLoading(route)
     }
 
@@ -407,100 +416,113 @@ open class RadioConfigViewModel(
         _radioConfigState.update { it.copy(route = route, responseState = ResponseState.Loading()) }
 
         loadJob?.cancel()
-        loadJob = viewModelScope.launch {
-            try {
-                when (route) {
-                    ConfigRoute.USER -> {
-                        val user = radioConfigUseCase.getOwner(destNum)
-                        _radioConfigState.update { it.copy(userConfig = user) }
-                    }
-
-                    ConfigRoute.CHANNELS -> {
-                        val channels = radioConfigUseCase.listChannels(destNum)
-                        val loraConfig = radioConfigUseCase.getConfig(destNum, AdminMessage.ConfigType.LORA_CONFIG.value)
-                        _radioConfigState.update { state ->
-                            state.copy(
-                                channelList = channels.mapNotNull { it.settings },
-                                radioConfig = state.radioConfig.copy(lora = loraConfig.lora ?: state.radioConfig.lora),
-                            )
+        loadJob =
+            viewModelScope.launch {
+                try {
+                    when (route) {
+                        ConfigRoute.USER -> {
+                            val user = radioConfigUseCase.getOwner(destNum)
+                            _radioConfigState.update { it.copy(userConfig = user) }
                         }
-                    }
 
-                    is AdminRoute -> {
-                        executeAdminAction(destNum, route)
-                        return@launch
-                    }
-
-                    is ConfigRoute -> {
-                        val config = radioConfigUseCase.getConfig(destNum, route.type)
-                        _radioConfigState.update { state ->
-                            state.copy(
-                                radioConfig = state.radioConfig.copy(
-                                    device = config.device ?: state.radioConfig.device,
-                                    position = config.position ?: state.radioConfig.position,
-                                    power = config.power ?: state.radioConfig.power,
-                                    network = config.network ?: state.radioConfig.network,
-                                    display = config.display ?: state.radioConfig.display,
-                                    lora = config.lora ?: state.radioConfig.lora,
-                                    bluetooth = config.bluetooth ?: state.radioConfig.bluetooth,
-                                    security = config.security ?: state.radioConfig.security,
-                                ),
-                            )
-                        }
-                        if (route == ConfigRoute.LORA) {
+                        ConfigRoute.CHANNELS -> {
                             val channels = radioConfigUseCase.listChannels(destNum)
-                            _radioConfigState.update { it.copy(channelList = channels.mapNotNull { ch -> ch.settings }) }
+                            val loraConfig =
+                                radioConfigUseCase.getConfig(destNum, AdminMessage.ConfigType.LORA_CONFIG.value)
+                            _radioConfigState.update { state ->
+                                state.copy(
+                                    channelList = channels.mapNotNull { it.settings },
+                                    radioConfig =
+                                    state.radioConfig.copy(lora = loraConfig.lora ?: state.radioConfig.lora),
+                                )
+                            }
                         }
-                        if (route == ConfigRoute.NETWORK) {
-                            val status = radioConfigUseCase.getDeviceConnectionStatus(destNum)
-                            _radioConfigState.update { it.copy(deviceConnectionStatus = status) }
-                        }
-                    }
 
-                    is ModuleRoute -> {
-                        val moduleConfig = radioConfigUseCase.getModuleConfig(destNum, route.type)
-                        _radioConfigState.update { state ->
-                            state.copy(
-                                moduleConfig = state.moduleConfig.copy(
-                                    mqtt = moduleConfig.mqtt ?: state.moduleConfig.mqtt,
-                                    serial = moduleConfig.serial ?: state.moduleConfig.serial,
-                                    external_notification =
-                                    moduleConfig.external_notification ?: state.moduleConfig.external_notification,
-                                    store_forward = moduleConfig.store_forward ?: state.moduleConfig.store_forward,
-                                    range_test = moduleConfig.range_test ?: state.moduleConfig.range_test,
-                                    telemetry = moduleConfig.telemetry ?: state.moduleConfig.telemetry,
-                                    canned_message = moduleConfig.canned_message ?: state.moduleConfig.canned_message,
-                                    audio = moduleConfig.audio ?: state.moduleConfig.audio,
-                                    remote_hardware =
-                                    moduleConfig.remote_hardware ?: state.moduleConfig.remote_hardware,
-                                    neighbor_info = moduleConfig.neighbor_info ?: state.moduleConfig.neighbor_info,
-                                    ambient_lighting =
-                                    moduleConfig.ambient_lighting ?: state.moduleConfig.ambient_lighting,
-                                    detection_sensor =
-                                    moduleConfig.detection_sensor ?: state.moduleConfig.detection_sensor,
-                                    paxcounter = moduleConfig.paxcounter ?: state.moduleConfig.paxcounter,
-                                    statusmessage = moduleConfig.statusmessage ?: state.moduleConfig.statusmessage,
-                                    traffic_management =
-                                    moduleConfig.traffic_management ?: state.moduleConfig.traffic_management,
-                                    tak = moduleConfig.tak ?: state.moduleConfig.tak,
-                                ),
-                            )
+                        is AdminRoute -> {
+                            executeAdminAction(destNum, route)
+                            return@launch
                         }
-                        if (route == ModuleRoute.CANNED_MESSAGE) {
-                            val messages = radioConfigUseCase.getCannedMessages(destNum)
-                            _radioConfigState.update { it.copy(cannedMessageMessages = messages) }
+
+                        is ConfigRoute -> {
+                            val config = radioConfigUseCase.getConfig(destNum, route.type)
+                            _radioConfigState.update { state ->
+                                state.copy(
+                                    radioConfig =
+                                    state.radioConfig.copy(
+                                        device = config.device ?: state.radioConfig.device,
+                                        position = config.position ?: state.radioConfig.position,
+                                        power = config.power ?: state.radioConfig.power,
+                                        network = config.network ?: state.radioConfig.network,
+                                        display = config.display ?: state.radioConfig.display,
+                                        lora = config.lora ?: state.radioConfig.lora,
+                                        bluetooth = config.bluetooth ?: state.radioConfig.bluetooth,
+                                        security = config.security ?: state.radioConfig.security,
+                                    ),
+                                )
+                            }
+                            if (route == ConfigRoute.LORA) {
+                                val channels = radioConfigUseCase.listChannels(destNum)
+                                _radioConfigState.update {
+                                    it.copy(channelList = channels.mapNotNull { ch -> ch.settings })
+                                }
+                            }
+                            if (route == ConfigRoute.NETWORK) {
+                                val status = radioConfigUseCase.getDeviceConnectionStatus(destNum)
+                                _radioConfigState.update { it.copy(deviceConnectionStatus = status) }
+                            }
                         }
-                        if (route == ModuleRoute.EXT_NOTIFICATION) {
-                            val ringtone = radioConfigUseCase.getRingtone(destNum)
-                            _radioConfigState.update { it.copy(ringtone = ringtone) }
+
+                        is ModuleRoute -> {
+                            val moduleConfig = radioConfigUseCase.getModuleConfig(destNum, route.type)
+                            _radioConfigState.update { state ->
+                                state.copy(
+                                    moduleConfig =
+                                    state.moduleConfig.copy(
+                                        mqtt = moduleConfig.mqtt ?: state.moduleConfig.mqtt,
+                                        serial = moduleConfig.serial ?: state.moduleConfig.serial,
+                                        external_notification =
+                                        moduleConfig.external_notification
+                                            ?: state.moduleConfig.external_notification,
+                                        store_forward =
+                                        moduleConfig.store_forward ?: state.moduleConfig.store_forward,
+                                        range_test = moduleConfig.range_test ?: state.moduleConfig.range_test,
+                                        telemetry = moduleConfig.telemetry ?: state.moduleConfig.telemetry,
+                                        canned_message =
+                                        moduleConfig.canned_message ?: state.moduleConfig.canned_message,
+                                        audio = moduleConfig.audio ?: state.moduleConfig.audio,
+                                        remote_hardware =
+                                        moduleConfig.remote_hardware ?: state.moduleConfig.remote_hardware,
+                                        neighbor_info =
+                                        moduleConfig.neighbor_info ?: state.moduleConfig.neighbor_info,
+                                        ambient_lighting =
+                                        moduleConfig.ambient_lighting ?: state.moduleConfig.ambient_lighting,
+                                        detection_sensor =
+                                        moduleConfig.detection_sensor ?: state.moduleConfig.detection_sensor,
+                                        paxcounter = moduleConfig.paxcounter ?: state.moduleConfig.paxcounter,
+                                        statusmessage =
+                                        moduleConfig.statusmessage ?: state.moduleConfig.statusmessage,
+                                        traffic_management =
+                                        moduleConfig.traffic_management
+                                            ?: state.moduleConfig.traffic_management,
+                                        tak = moduleConfig.tak ?: state.moduleConfig.tak,
+                                    ),
+                                )
+                            }
+                            if (route == ModuleRoute.CANNED_MESSAGE) {
+                                val messages = radioConfigUseCase.getCannedMessages(destNum)
+                                _radioConfigState.update { it.copy(cannedMessageMessages = messages) }
+                            }
+                            if (route == ModuleRoute.EXT_NOTIFICATION) {
+                                val ringtone = radioConfigUseCase.getRingtone(destNum)
+                                _radioConfigState.update { it.copy(ringtone = ringtone) }
+                            }
                         }
                     }
+                    setResponseStateSuccess()
+                } catch (e: AdminException) {
+                    sendError(e.toUiText())
                 }
-                setResponseStateSuccess()
-            } catch (e: AdminException) {
-                sendError(e.toUiText())
             }
-        }
     }
 
     private suspend fun executeAdminAction(destNum: Int, route: AdminRoute) {
@@ -508,6 +530,7 @@ open class RadioConfigViewModel(
             val preserveFavorites = radioConfigState.value.nodeDbResetPreserveFavorites
             when (route) {
                 AdminRoute.REBOOT -> adminActionsUseCase.reboot(destNum)
+
                 AdminRoute.SHUTDOWN -> {
                     if (radioConfigState.value.metadata?.canShutdown != true) {
                         sendError(Res.string.cant_shutdown)
@@ -515,10 +538,12 @@ open class RadioConfigViewModel(
                     }
                     adminActionsUseCase.shutdown(destNum)
                 }
+
                 AdminRoute.FACTORY_RESET -> {
                     val isLocal = (destNum == myNodeNum)
                     adminActionsUseCase.factoryReset(destNum, isLocal)
                 }
+
                 AdminRoute.NODEDB_RESET -> {
                     val isLocal = (destNum == myNodeNum)
                     adminActionsUseCase.nodedbReset(destNum, preserveFavorites, isLocal)

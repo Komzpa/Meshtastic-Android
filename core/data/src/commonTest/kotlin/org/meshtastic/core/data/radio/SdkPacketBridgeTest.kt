@@ -33,8 +33,6 @@ import org.meshtastic.core.testing.FakeServiceRepository
 import org.meshtastic.proto.Data
 import org.meshtastic.proto.MeshPacket
 import org.meshtastic.proto.PortNum
-import org.meshtastic.proto.StoreForwardPlusPlus
-import org.meshtastic.sdk.NodeId
 import org.meshtastic.sdk.RadioClient
 import org.meshtastic.sdk.StoreForwardEvent
 import org.meshtastic.sdk.TransportIdentity
@@ -81,7 +79,8 @@ class SdkPacketBridgeTest {
 
         transport.injectStoreForwardResponse(
             requestId = 0,
-            message = org.meshtastic.proto.StoreAndForward(
+            message =
+            org.meshtastic.proto.StoreAndForward(
                 rr = org.meshtastic.proto.StoreAndForward.RequestResponse.ROUTER_HEARTBEAT,
                 heartbeat = org.meshtastic.proto.StoreAndForward.Heartbeat(period = 300),
             ),
@@ -89,7 +88,8 @@ class SdkPacketBridgeTest {
         )
         transport.injectStoreForwardResponse(
             requestId = 0,
-            message = org.meshtastic.proto.StoreAndForward(
+            message =
+            org.meshtastic.proto.StoreAndForward(
                 rr = org.meshtastic.proto.StoreAndForward.RequestResponse.ROUTER_HEARTBEAT,
                 heartbeat = org.meshtastic.proto.StoreAndForward.Heartbeat(period = 300),
             ),
@@ -150,13 +150,7 @@ class SdkPacketBridgeTest {
         val bridge = SdkPacketBridge(FakeServiceRepository(), lazyOf(packetRepository), FakeNodeRepository())
 
         bridge.handleStoreForwardEvent(
-            StoreForwardEvent.SfppLinkProvided(
-                packetId = 1,
-                from = 2,
-                to = 3,
-                messageHash = null,
-                confirmed = true,
-            ),
+            StoreForwardEvent.SfppLinkProvided(packetId = 1, from = 2, to = 3, messageHash = null, confirmed = true),
         )
 
         assertTrue(packetRepository.statusCalls.isEmpty())
@@ -169,10 +163,7 @@ class SdkPacketBridgeTest {
         val bridge = SdkPacketBridge(FakeServiceRepository(), lazyOf(packetRepository), FakeNodeRepository())
 
         bridge.handleStoreForwardEvent(
-            StoreForwardEvent.SfppCanonAnnounced(
-                messageHash = byteArrayOf(7, 6, 5, 4),
-                rxTime = 0xFEDCBA98L,
-            ),
+            StoreForwardEvent.SfppCanonAnnounced(messageHash = byteArrayOf(7, 6, 5, 4), rxTime = 0xFEDCBA98L),
         )
 
         val call = packetRepository.hashCalls.single()
@@ -219,9 +210,8 @@ class SdkPacketBridgeTest {
         return transport to client
     }
 
-    private class RecordingPacketRepository(
-        private val delegate: PacketRepository = mock(MockMode.autofill),
-    ) : PacketRepository by delegate {
+    private class RecordingPacketRepository(private val delegate: PacketRepository = mock(MockMode.autofill)) :
+        PacketRepository by delegate {
         data class StatusCall(
             val packetId: Int,
             val from: Int,
@@ -232,11 +222,7 @@ class SdkPacketBridgeTest {
             val myNodeNum: Int?,
         )
 
-        data class HashCall(
-            val hash: ByteArray,
-            val status: MessageStatus,
-            val rxTime: Long,
-        )
+        data class HashCall(val hash: ByteArray, val status: MessageStatus, val rxTime: Long)
 
         val statusCalls = mutableListOf<StatusCall>()
         val hashCalls = mutableListOf<HashCall>()

@@ -21,7 +21,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import kotlinx.io.bytestring.ByteString as KByteString
 import okio.ByteString.Companion.toByteString
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.util.onlineTimeThreshold
@@ -44,44 +43,35 @@ import org.meshtastic.sdk.testing.InMemoryStorage
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.io.bytestring.ByteString as KByteString
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SdkNodeBridgeTest {
 
     @Test
     fun `snapshot clears repository and reinstalls nodes`() = runTest {
-        val nodeRepository = RecordingNodeRepository().apply {
-            setNodes(
-                listOf(
-                    Node(num = 0xAAAA0001.toInt(), user = User(id = "!AAAA0001", long_name = "stale")),
-                ),
-            )
-        }
-        val topologyService = MeshTopologyService().apply {
-            ingestNeighborInfo(
-                org.meshtastic.sdk.NeighborInfo(
-                    nodeId = NodeId(1),
-                    neighbors = listOf(org.meshtastic.sdk.NeighborInfo.Neighbor(NodeId(2), 7.5f)),
-                ),
-            )
-        }
+        val nodeRepository =
+            RecordingNodeRepository().apply {
+                setNodes(listOf(Node(num = 0xAAAA0001.toInt(), user = User(id = "!AAAA0001", long_name = "stale"))))
+            }
+        val topologyService =
+            MeshTopologyService().apply {
+                ingestNeighborInfo(
+                    org.meshtastic.sdk.NeighborInfo(
+                        nodeId = NodeId(1),
+                        neighbors = listOf(org.meshtastic.sdk.NeighborInfo.Neighbor(NodeId(2), 7.5f)),
+                    ),
+                )
+            }
         val bridge = SdkNodeBridge(nodeRepository, topologyService)
         val first = nodeInfo(0x11111111, "!11111111", "Alpha")
         val second = nodeInfo(0x22222222, "!22222222", "Bravo")
 
-        bridge.handleNodeChange(
-            NodeChange.Snapshot(
-                mapOf(
-                    NodeId(first.num) to first,
-                    NodeId(second.num) to second,
-                ),
-            ),
-        )
+        bridge.handleNodeChange(NodeChange.Snapshot(mapOf(NodeId(first.num) to first, NodeId(second.num) to second)))
 
         assertEquals(1, nodeRepository.clearCalls)
         assertEquals(listOf(false, false), nodeRepository.installCalls.map { it.second })
@@ -118,9 +108,10 @@ class SdkNodeBridgeTest {
     @Test
     fun `removed event deletes node from repository`() = runTest {
         val nodeNum = 0x55555555
-        val nodeRepository = RecordingNodeRepository().apply {
-            setNodes(listOf(Node(num = nodeNum, user = User(id = "!55555555", long_name = "Gone"))))
-        }
+        val nodeRepository =
+            RecordingNodeRepository().apply {
+                setNodes(listOf(Node(num = nodeNum, user = User(id = "!55555555", long_name = "Gone"))))
+            }
         val bridge = SdkNodeBridge(nodeRepository, MeshTopologyService())
 
         bridge.handleNodeChange(NodeChange.Removed(NodeId(nodeNum)))
@@ -132,24 +123,28 @@ class SdkNodeBridgeTest {
     @Test
     fun `went offline updates last heard and marks node offline`() = runTest {
         val nodeNum = 0x66666666
-        val nodeRepository = RecordingNodeRepository().apply {
-            setNodes(
-                listOf(
-                    Node(
-                        num = nodeNum,
-                        user = User(id = "!66666666", long_name = "Offline"),
-                        lastHeard = Clock.System.now().epochSeconds.toInt(),
+        val nodeRepository =
+            RecordingNodeRepository().apply {
+                setNodes(
+                    listOf(
+                        Node(
+                            num = nodeNum,
+                            user = User(id = "!66666666", long_name = "Offline"),
+                            lastHeard = Clock.System.now().epochSeconds.toInt(),
+                        ),
                     ),
-                ),
-            )
-        }
+                )
+            }
         val bridge = SdkNodeBridge(nodeRepository, MeshTopologyService())
         val staleLastHeard = onlineTimeThreshold() - 20
 
         bridge.handleNodeChange(NodeChange.WentOffline(NodeId(nodeNum), staleLastHeard))
 
         val updated = nodeRepository.nodeDBbyNum.value.getValue(nodeNum)
-        assertEquals(minOf(Clock.System.now().epochSeconds.toInt(), staleLastHeard, onlineTimeThreshold()), updated.lastHeard)
+        assertEquals(
+            minOf(Clock.System.now().epochSeconds.toInt(), staleLastHeard, onlineTimeThreshold()),
+            updated.lastHeard,
+        )
         assertFalse(updated.isOnline)
     }
 
@@ -166,17 +161,18 @@ class SdkNodeBridgeTest {
     @Test
     fun `came online updates last heard and marks node online`() = runTest {
         val nodeNum = 0x88888888.toInt()
-        val nodeRepository = RecordingNodeRepository().apply {
-            setNodes(
-                listOf(
-                    Node(
-                        num = nodeNum,
-                        user = User(id = "!88888888", long_name = "Online"),
-                        lastHeard = onlineTimeThreshold() - 120,
+        val nodeRepository =
+            RecordingNodeRepository().apply {
+                setNodes(
+                    listOf(
+                        Node(
+                            num = nodeNum,
+                            user = User(id = "!88888888", long_name = "Online"),
+                            lastHeard = onlineTimeThreshold() - 120,
+                        ),
                     ),
-                ),
-            )
-        }
+                )
+            }
         val bridge = SdkNodeBridge(nodeRepository, MeshTopologyService())
 
         bridge.handleNodeChange(NodeChange.CameOnline(NodeId(nodeNum)))
@@ -217,15 +213,17 @@ class SdkNodeBridgeTest {
     @Test
     fun `node status packet populates node status`() = runTest {
         val nodeNum = 0xABCDEF01.toInt()
-        val nodeRepository = RecordingNodeRepository().apply {
-            setNodes(listOf(Node(num = nodeNum, user = User(id = "!ABCDEF01", long_name = "Status"))))
-        }
+        val nodeRepository =
+            RecordingNodeRepository().apply {
+                setNodes(listOf(Node(num = nodeNum, user = User(id = "!ABCDEF01", long_name = "Status"))))
+            }
         val bridge = SdkNodeBridge(nodeRepository, MeshTopologyService())
 
         bridge.handleNodeStatusPacket(
             MeshPacket(
                 from = nodeNum,
-                decoded = Data(
+                decoded =
+                Data(
                     portnum = PortNum.NODE_STATUS_APP,
                     payload = "nomad active".encodeToByteArray().toByteString(),
                 ),
@@ -238,17 +236,13 @@ class SdkNodeBridgeTest {
     @Test
     fun `node status packet with empty payload stores empty status`() = runTest {
         val nodeNum = 0x0BADF00D
-        val nodeRepository = RecordingNodeRepository().apply {
-            setNodes(listOf(Node(num = nodeNum, user = User(id = "!0BADF00D", long_name = "Status"))))
-        }
+        val nodeRepository =
+            RecordingNodeRepository().apply {
+                setNodes(listOf(Node(num = nodeNum, user = User(id = "!0BADF00D", long_name = "Status"))))
+            }
         val bridge = SdkNodeBridge(nodeRepository, MeshTopologyService())
 
-        bridge.handleNodeStatusPacket(
-            MeshPacket(
-                from = nodeNum,
-                decoded = Data(portnum = PortNum.NODE_STATUS_APP),
-            ),
-        )
+        bridge.handleNodeStatusPacket(MeshPacket(from = nodeNum, decoded = Data(portnum = PortNum.NODE_STATUS_APP)))
 
         assertEquals("", nodeRepository.nodeDBbyNum.value.getValue(nodeNum).nodeStatus)
     }
@@ -258,7 +252,12 @@ class SdkNodeBridgeTest {
         myNodeNum: Int = 0x11111111,
         presenceTimeout: Duration = 1.seconds,
     ): Pair<FakeRadioTransport, RadioClient> {
-        val transport = FakeRadioTransport(identity = TransportIdentity("fake:node-bridge"), autoHandshake = true, nodeNum = myNodeNum)
+        val transport =
+            FakeRadioTransport(
+                identity = TransportIdentity("fake:node-bridge"),
+                autoHandshake = true,
+                nodeNum = myNodeNum,
+            )
         val client =
             RadioClient.Builder()
                 .transport(transport)
@@ -271,26 +270,23 @@ class SdkNodeBridgeTest {
     }
 
     private fun nodeInfo(num: Int, id: String, longName: String) =
-        NodeInfo(
-            num = num,
-            user = User(id = id, long_name = longName, short_name = longName.take(4)),
-        )
+        NodeInfo(num = num, user = User(id = id, long_name = longName, short_name = longName.take(4)))
 
     private fun encodeFromRadio(fromRadio: FromRadio): Frame {
         val proto = FromRadio.ADAPTER.encode(fromRadio)
-        val frameBytes = ByteArray(4 + proto.size).apply {
-            this[0] = 0x94.toByte()
-            this[1] = 0xC3.toByte()
-            this[2] = (proto.size shr 8).toByte()
-            this[3] = (proto.size and 0xFF).toByte()
-            proto.copyInto(this, destinationOffset = 4)
-        }
+        val frameBytes =
+            ByteArray(4 + proto.size).apply {
+                this[0] = 0x94.toByte()
+                this[1] = 0xC3.toByte()
+                this[2] = (proto.size shr 8).toByte()
+                this[3] = (proto.size and 0xFF).toByte()
+                proto.copyInto(this, destinationOffset = 4)
+            }
         return Frame(KByteString(frameBytes))
     }
 
-    private class RecordingNodeRepository(
-        private val delegate: FakeNodeRepository = FakeNodeRepository(),
-    ) : NodeRepository by delegate {
+    private class RecordingNodeRepository(private val delegate: FakeNodeRepository = FakeNodeRepository()) :
+        NodeRepository by delegate {
         val installCalls = mutableListOf<Pair<NodeInfo, Boolean>>()
         val removeCalls = mutableListOf<Int>()
         var clearCalls = 0
@@ -324,13 +320,8 @@ class SdkNodeBridgeTest {
     }
 }
 
-private class NodeBridgeSeededHeartbeatStorageProvider(
-    private val heartbeats: Map<NodeId, Long>,
-) : StorageProvider {
-    override suspend fun activate(identity: TransportIdentity) =
-        InMemoryStorage().also { storage ->
-            heartbeats.forEach { (nodeId, heartbeatMs) ->
-                storage.saveHeartbeat(nodeId, heartbeatMs)
-            }
-        }
+private class NodeBridgeSeededHeartbeatStorageProvider(private val heartbeats: Map<NodeId, Long>) : StorageProvider {
+    override suspend fun activate(identity: TransportIdentity) = InMemoryStorage().also { storage ->
+        heartbeats.forEach { (nodeId, heartbeatMs) -> storage.saveHeartbeat(nodeId, heartbeatMs) }
+    }
 }

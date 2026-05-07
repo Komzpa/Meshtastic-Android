@@ -223,10 +223,11 @@ class RadioConfigViewModelTest {
         nodeRepository.setNodes(listOf(node))
         viewModel = createViewModel()
 
-        val channels = listOf(
-            Channel(index = 0, settings = ChannelSettings(name = "Primary")),
-            Channel(index = 1, settings = ChannelSettings(name = "Secondary")),
-        )
+        val channels =
+            listOf(
+                Channel(index = 0, settings = ChannelSettings(name = "Primary")),
+                Channel(index = 1, settings = ChannelSettings(name = "Secondary")),
+            )
         val loraConfig = Config(lora = Config.LoRaConfig(hop_limit = 5))
         everySuspend { radioConfigUseCase.listChannels(any()) } returns channels
         everySuspend { radioConfigUseCase.getConfig(any(), any()) } returns loraConfig
@@ -338,10 +339,7 @@ class RadioConfigViewModelTest {
         viewModel = createViewModel()
 
         viewModel.initDestNum(123)
-        assertEquals(
-            123,
-            viewModel.destNode.value?.num ?: 123,
-        )
+        assertEquals(123, viewModel.destNode.value?.num ?: 123)
 
         viewModel.initDestNum(null)
     }

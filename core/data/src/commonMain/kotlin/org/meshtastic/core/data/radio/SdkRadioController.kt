@@ -59,11 +59,12 @@ import org.meshtastic.sdk.RadioClient
  * **Command dispatch:** All admin, telemetry, and routing operations go through [RadioClient.admin],
  * [RadioClient.telemetry], and [RadioClient.routing] respectively.
  *
- * **State distribution:** Handled by [SdkStateBridge], which feeds SDK flows into
- * [ServiceRepository] and [org.meshtastic.core.repository.NodeRepository].
+ * **State distribution:** Handled by [SdkStateBridge], which feeds SDK flows into [ServiceRepository] and
+ * [org.meshtastic.core.repository.NodeRepository].
  */
 @Single(
-    binds = [
+    binds =
+    [
         RadioController::class,
         MessageSender::class,
         DeviceAdmin::class,
@@ -87,12 +88,11 @@ class SdkRadioController(
     private val client: RadioClient?
         get() = accessor.client.value
 
-    private fun requireClient(): RadioClient {
-        return client ?: run {
+    private fun requireClient(): RadioClient = client
+        ?: run {
             Logger.w { "SdkRadioController: no active RadioClient" }
             throw IllegalStateException("RadioClient not connected")
         }
-    }
 
     // ── Observable state ────────────────────────────────────────────────────
 
@@ -109,23 +109,26 @@ class SdkRadioController(
     // ── Messaging ───────────────────────────────────────────────────────────
 
     override suspend fun sendMessage(packet: DataPacket) {
-        val c = client ?: run {
-            Logger.w { "sendMessage: no client, dropping packet" }
-            return
-        }
+        val c =
+            client
+                ?: run {
+                    Logger.w { "sendMessage: no client, dropping packet" }
+                    return
+                }
         val packetId = packet.id.takeIf { it != 0 } ?: getPacketId()
         try {
-            val handle = c.send(
-                portnum = PortNum.fromValue(packet.dataType) ?: PortNum.UNKNOWN_APP,
-                payload = packet.bytes?.toByteArray() ?: byteArrayOf(),
-                to = NodeId(packet.to),
-                channel = ChannelIndex(packet.channel),
-                wantAck = packet.wantAck,
-                hopLimit = packet.hopLimit.takeIf { it > 0 },
-            )
+            val handle =
+                c.send(
+                    portnum = PortNum.fromValue(packet.dataType) ?: PortNum.UNKNOWN_APP,
+                    payload = packet.bytes?.toByteArray() ?: byteArrayOf(),
+                    to = NodeId(packet.to),
+                    channel = ChannelIndex(packet.channel),
+                    wantAck = packet.wantAck,
+                    hopLimit = packet.hopLimit.takeIf { it > 0 },
+                )
             deliveryTracker.track(packetId, handle)
             serviceRepository.emitMeshActivity(MeshActivity.Send)
-        } catch (e: Exception) {
+        } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
             Logger.e(e) { "sendMessage failed" }
             throw e
         }
@@ -143,11 +146,7 @@ class SdkRadioController(
     override suspend fun sendSharedContact(nodeNum: Int): Boolean {
         val c = client ?: return false
         val node = nodeRepository.getNode(DataPacket.nodeNumToDefaultId(nodeNum))
-        val contact = SharedContact(
-            node_num = node.num,
-            user = node.user,
-            manually_verified = node.manuallyVerified,
-        )
+        val contact = SharedContact(node_num = node.num, user = node.user, manually_verified = node.manuallyVerified)
         return when (c.admin.addContact(contact)) {
             is AdminResult.Success -> true
             else -> false
@@ -190,12 +189,13 @@ class SdkRadioController(
 
     override suspend fun setFixedPosition(destNum: Int, position: Position) {
         val c = requireClient()
-        val protoPos = org.meshtastic.proto.Position(
-            latitude_i = Position.degI(position.latitude),
-            longitude_i = Position.degI(position.longitude),
-            altitude = position.altitude,
-            time = position.time,
-        )
+        val protoPos =
+            org.meshtastic.proto.Position(
+                latitude_i = Position.degI(position.latitude),
+                longitude_i = Position.degI(position.longitude),
+                altitude = position.altitude,
+                time = position.time,
+            )
         c.admin.forNode(NodeId(destNum)).setFixedPosition(protoPos)
     }
 
@@ -218,15 +218,17 @@ class SdkRadioController(
 
     override suspend fun getConfig(destNum: Int, configType: Int): Config {
         val c = requireClient()
-        val type = AdminMessage.ConfigType.fromValue(configType)
-            ?: throw IllegalArgumentException("Unknown config type: $configType")
+        val type =
+            AdminMessage.ConfigType.fromValue(configType)
+                ?: throw IllegalArgumentException("Unknown config type: $configType")
         return c.admin.forNode(NodeId(destNum)).getConfig(type).unwrap()
     }
 
     override suspend fun getModuleConfig(destNum: Int, moduleConfigType: Int): ModuleConfig {
         val c = requireClient()
-        val type = AdminMessage.ModuleConfigType.fromValue(moduleConfigType)
-            ?: throw IllegalArgumentException("Unknown module config type: $moduleConfigType")
+        val type =
+            AdminMessage.ModuleConfigType.fromValue(moduleConfigType)
+                ?: throw IllegalArgumentException("Unknown module config type: $moduleConfigType")
         return c.admin.forNode(NodeId(destNum)).getModuleConfig(type).unwrap()
     }
 
@@ -299,18 +301,16 @@ class SdkRadioController(
 
     override suspend fun requestPosition(destNum: Int, currentPosition: Position) {
         val c = client ?: return
-        val posBytes = org.meshtastic.proto.Position(
-            latitude_i = Position.degI(currentPosition.latitude),
-            longitude_i = Position.degI(currentPosition.longitude),
-            altitude = currentPosition.altitude,
-            time = currentPosition.time,
-        ).encode()
-        c.send(
-            portnum = PortNum.POSITION_APP,
-            payload = posBytes,
-            to = NodeId(destNum),
-            wantAck = true,
-        )
+        val posBytes =
+            org.meshtastic.proto
+                .Position(
+                    latitude_i = Position.degI(currentPosition.latitude),
+                    longitude_i = Position.degI(currentPosition.longitude),
+                    altitude = currentPosition.altitude,
+                    time = currentPosition.time,
+                )
+                .encode()
+        c.send(portnum = PortNum.POSITION_APP, payload = posBytes, to = NodeId(destNum), wantAck = true)
     }
 
     override suspend fun requestUserInfo(destNum: Int) {
@@ -349,13 +349,16 @@ class SdkRadioController(
         return when (val result = c.storeForward.requestHistory(since = since, server = server)) {
             is AdminResult.Success -> {
                 Logger.i {
-                    "Requested S&F history since=${since ?: 0} server=${serverNodeNum ?: "auto"} pending=${result.value}"
+                    "Requested S&F history since=${since ?: 0} " +
+                        "server=${serverNodeNum ?: "auto"} pending=${result.value}"
                 }
                 true
             }
+
             else -> {
                 Logger.w {
-                    "S&F history request failed since=${since ?: 0} server=${serverNodeNum ?: "auto"} result=$result"
+                    "S&F history request failed since=${since ?: 0} " +
+                        "server=${serverNodeNum ?: "auto"} result=$result"
                 }
                 false
             }
@@ -367,16 +370,30 @@ class SdkRadioController(
     override suspend fun editSettings(destNum: Int, block: suspend DeviceAdminEdit.() -> Unit) {
         val c = requireClient()
         val admin = c.admin.forNode(NodeId(destNum))
-        admin.editSettings {
-            val edit = this
-            val bridge = object : DeviceAdminEdit {
-                override suspend fun setConfig(config: Config) { edit.setConfig(config) }
-                override suspend fun setModuleConfig(config: ModuleConfig) { edit.setModuleConfig(config) }
-                override suspend fun setOwner(user: User) { edit.setOwner(user) }
-                override suspend fun setChannel(channel: Channel) { edit.setChannel(channel) }
+        admin
+            .editSettings {
+                val edit = this
+                val bridge =
+                    object : DeviceAdminEdit {
+                        override suspend fun setConfig(config: Config) {
+                            edit.setConfig(config)
+                        }
+
+                        override suspend fun setModuleConfig(config: ModuleConfig) {
+                            edit.setModuleConfig(config)
+                        }
+
+                        override suspend fun setOwner(user: User) {
+                            edit.setOwner(user)
+                        }
+
+                        override suspend fun setChannel(channel: Channel) {
+                            edit.setChannel(channel)
+                        }
+                    }
+                block(bridge)
             }
-            block(bridge)
-        }.unwrap()
+            .unwrap()
     }
 
     // ── Utility ─────────────────────────────────────────────────────────────

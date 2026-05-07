@@ -127,9 +127,9 @@ class LocalStatsWidgetStateProvider(nodeRepository: NodeRepository, serviceRepos
         return LocalStatsWidgetUiState(
             connectionState = connectionState,
             isConnecting =
-                connectionState is ConnectionState.Connecting ||
-                    connectionState is ConnectionState.Configuring ||
-                    connectionState is ConnectionState.Reconnecting,
+            connectionState is ConnectionState.Connecting ||
+                connectionState is ConnectionState.Configuring ||
+                connectionState is ConnectionState.Reconnecting,
             showContent = connectionState is ConnectionState.Connected,
             nodeShortName = localNode?.user?.short_name,
             nodeColors = localNode?.colors,

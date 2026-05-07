@@ -21,9 +21,8 @@ import kotlinx.coroutines.flow.Flow
 /**
  * App-local node metadata that persists independently of the SDK's node database.
  *
- * This covers user annotations (favorites, notes, mute, ignore) that are NOT synced to the radio.
- * VMs and feature modules inject this instead of the full [NodeRepository] when they only need
- * metadata operations.
+ * This covers user annotations (favorites, notes, mute, ignore) that are NOT synced to the radio. VMs and feature
+ * modules inject this instead of the full [NodeRepository] when they only need metadata operations.
  */
 interface AppMetadataRepository {
 
@@ -31,10 +30,15 @@ interface AppMetadataRepository {
     val metadataByNum: Flow<Map<Int, NodeMetadata>>
 
     suspend fun setFavorite(nodeNum: Int, isFavorite: Boolean)
+
     suspend fun setIgnored(nodeNum: Int, isIgnored: Boolean)
+
     suspend fun setMuted(nodeNum: Int, isMuted: Boolean)
+
     suspend fun setNotes(nodeNum: Int, notes: String)
+
     suspend fun setManuallyVerified(nodeNum: Int, verified: Boolean)
+
     suspend fun delete(nodeNum: Int)
 }
 

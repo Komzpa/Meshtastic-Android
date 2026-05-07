@@ -29,11 +29,11 @@ import org.meshtastic.sdk.NodeId
 /**
  * Thread-safe wrapper around SDK's [MeshTopology] graph utility.
  *
- * Fed by [SdkStateBridge] whenever a NEIGHBORINFO_APP packet arrives. Exposes reactive
- * topology state for feature modules (map visualization, route analysis, neighbor lists).
+ * Fed by [SdkStateBridge] whenever a NEIGHBORINFO_APP packet arrives. Exposes reactive topology state for feature
+ * modules (map visualization, route analysis, neighbor lists).
  *
- * The graph is incrementally built: each [ingestNeighborInfo] call replaces all edges from
- * the reporting node, keeping the topology fresh as nodes broadcast their neighbor tables.
+ * The graph is incrementally built: each [ingestNeighborInfo] call replaces all edges from the reporting node, keeping
+ * the topology fresh as nodes broadcast their neighbor tables.
  */
 @Single
 class MeshTopologyService {
@@ -41,17 +41,16 @@ class MeshTopologyService {
     private val mutex = Mutex()
 
     private val _edges = MutableStateFlow<List<MeshTopology.Edge>>(emptyList())
+
     /** All directed edges in the mesh topology graph. */
     val edges: StateFlow<List<MeshTopology.Edge>> = _edges
 
     private val _nodeCount = MutableStateFlow(0)
+
     /** Total number of nodes participating in the topology (reporters + reported neighbors). */
     val nodeCount: StateFlow<Int> = _nodeCount
 
-    /**
-     * Ingest a [NeighborInfo] report into the topology graph.
-     * Replaces all prior edges from the reporting node.
-     */
+    /** Ingest a [NeighborInfo] report into the topology graph. Replaces all prior edges from the reporting node. */
     suspend fun ingestNeighborInfo(info: NeighborInfo) {
         mutex.withLock {
             topology.addNeighborInfo(info)
@@ -71,16 +70,14 @@ class MeshTopologyService {
     }
 
     /** Get all neighbors of a specific node (thread-safe snapshot). */
-    suspend fun getNeighbors(nodeId: NodeId): List<MeshTopology.Edge> =
-        mutex.withLock { topology.getNeighbors(nodeId) }
+    suspend fun getNeighbors(nodeId: NodeId): List<MeshTopology.Edge> = mutex.withLock { topology.getNeighbors(nodeId) }
 
     /** Find the shortest path between two nodes via BFS. */
     suspend fun shortestPath(from: NodeId, to: NodeId): List<NodeId> =
         mutex.withLock { topology.shortestPath(from, to) }
 
     /** Check if two nodes have a direct edge in either direction. */
-    suspend fun isDirectReach(a: NodeId, b: NodeId): Boolean =
-        mutex.withLock { topology.isDirectReach(a, b) }
+    suspend fun isDirectReach(a: NodeId, b: NodeId): Boolean = mutex.withLock { topology.isDirectReach(a, b) }
 
     /** Clear all topology data (e.g., on disconnect). */
     suspend fun clear() {

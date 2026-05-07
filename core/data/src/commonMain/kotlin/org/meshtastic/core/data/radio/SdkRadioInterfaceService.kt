@@ -26,17 +26,14 @@ import org.meshtastic.core.repository.RadioPrefs
 /**
  * SDK-backed implementation of [RadioInterfaceService].
  *
- * Delegates device-address management to [RadioPrefs] and connection lifecycle to [RadioClientAccessor].
- * The heavy transport work (BLE, TCP, Serial) is handled by the SDK internally.
+ * Delegates device-address management to [RadioPrefs] and connection lifecycle to [RadioClientAccessor]. The heavy
+ * transport work (BLE, TCP, Serial) is handled by the SDK internally.
  */
 @Single(binds = [RadioInterfaceService::class])
-class SdkRadioInterfaceService(
-    private val radioPrefs: RadioPrefs,
-    private val accessor: RadioClientAccessor,
-) : RadioInterfaceService {
+class SdkRadioInterfaceService(private val radioPrefs: RadioPrefs, private val accessor: RadioClientAccessor) :
+    RadioInterfaceService {
 
-    override val supportedDeviceTypes: List<DeviceType> =
-        listOf(DeviceType.BLE, DeviceType.TCP, DeviceType.USB)
+    override val supportedDeviceTypes: List<DeviceType> = listOf(DeviceType.BLE, DeviceType.TCP, DeviceType.USB)
 
     override val currentDeviceAddressFlow: StateFlow<String?> = radioPrefs.devAddr
 
@@ -54,8 +51,7 @@ class SdkRadioInterfaceService(
         return true
     }
 
-    override fun toInterfaceAddress(interfaceId: InterfaceId, rest: String): String =
-        "${interfaceId.id}$rest"
+    override fun toInterfaceAddress(interfaceId: InterfaceId, rest: String): String = "${interfaceId.id}$rest"
 
     override fun connect() {
         accessor.rebuildAndConnectAsync()

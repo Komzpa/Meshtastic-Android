@@ -18,9 +18,7 @@ package org.meshtastic.core.data.datasource
 
 import org.meshtastic.core.model.NetworkFirmwareReleases
 
-/**
- * Loads bundled firmware release metadata used as a local fallback source.
- */
+/** Loads bundled firmware release metadata used as a local fallback source. */
 interface FirmwareReleaseJsonDataSource {
     /** Returns firmware release metadata parsed from the packaged JSON asset. */
     fun loadFirmwareReleaseFromJsonAsset(): NetworkFirmwareReleases

@@ -25,16 +25,13 @@ import org.meshtastic.core.database.entity.NodeMetadataEntity
 import org.meshtastic.core.repository.AppMetadataRepository
 import org.meshtastic.core.repository.NodeMetadata
 
-/**
- * Stores app-managed node metadata such as favorites, mute state, and notes.
- */
+/** Stores app-managed node metadata such as favorites, mute state, and notes. */
 @Single(binds = [AppMetadataRepository::class])
-class AppMetadataRepositoryImpl(
-    private val dbManager: DatabaseProvider,
-) : AppMetadataRepository {
+class AppMetadataRepositoryImpl(private val dbManager: DatabaseProvider) : AppMetadataRepository {
 
     override val metadataByNum: Flow<Map<Int, NodeMetadata>> =
-        dbManager.currentDb.flatMapLatest { db -> db.nodeMetadataDao().getAllFlow() }
+        dbManager.currentDb
+            .flatMapLatest { db -> db.nodeMetadataDao().getAllFlow() }
             .map { list -> list.associate { it.num to it.toModel() } }
 
     override suspend fun setFavorite(nodeNum: Int, isFavorite: Boolean) {

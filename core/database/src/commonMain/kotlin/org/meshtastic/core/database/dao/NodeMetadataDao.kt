@@ -26,8 +26,7 @@ import org.meshtastic.core.database.entity.NodeMetadataEntity
 @Dao
 interface NodeMetadataDao {
 
-    @Upsert
-    suspend fun upsert(metadata: NodeMetadataEntity)
+    @Upsert suspend fun upsert(metadata: NodeMetadataEntity)
 
     @Query("INSERT OR IGNORE INTO node_metadata(num) VALUES (:num)")
     suspend fun ensureExists(num: Int)

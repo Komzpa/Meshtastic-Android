@@ -30,8 +30,8 @@ open class InstallProfileUseCase constructor(private val radioController: RadioC
     /**
      * Installs the provided [DeviceProfile] onto the radio at [destNum].
      *
-     * Uses [RadioController.editSettings] to batch all writes inside a transactional
-     * `begin_edit_settings` / `commit_edit_settings` envelope.
+     * Uses [RadioController.editSettings] to batch all writes inside a transactional `begin_edit_settings` /
+     * `commit_edit_settings` envelope.
      *
      * @param destNum The destination node number.
      * @param profile The device profile to install.
@@ -54,10 +54,11 @@ open class InstallProfileUseCase constructor(private val radioController: RadioC
     ) {
         if (profile.long_name != null || profile.short_name != null) {
             currentUser?.let {
-                val user = it.copy(
-                    long_name = profile.long_name ?: it.long_name,
-                    short_name = profile.short_name ?: it.short_name,
-                )
+                val user =
+                    it.copy(
+                        long_name = profile.long_name ?: it.long_name,
+                        short_name = profile.short_name ?: it.short_name,
+                    )
                 setOwner(user)
             }
         }

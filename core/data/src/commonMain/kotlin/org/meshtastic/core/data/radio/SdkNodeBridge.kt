@@ -66,9 +66,13 @@ internal class SdkNodeBridge(
             }
 
             is NodeChange.Added -> nodeRepository.installNodeInfo(change.node, withBroadcast = true)
+
             is NodeChange.Updated -> nodeRepository.installNodeInfo(change.node, withBroadcast = true)
+
             is NodeChange.Removed -> nodeRepository.removeByNodenum(change.nodeId.raw)
+
             is NodeChange.WentOffline -> handleWentOffline(change)
+
             is NodeChange.CameOnline -> handleCameOnline(change)
         }
     }

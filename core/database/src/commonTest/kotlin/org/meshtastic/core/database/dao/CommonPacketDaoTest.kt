@@ -207,7 +207,8 @@ abstract class CommonPacketDaoTest {
                     contact_key = contactKey,
                     received_time = nowMillis + index,
                     read = false,
-                    data = DataPacket(
+                    data =
+                    DataPacket(
                         to = DataPacket.BROADCAST,
                         bytes = text.encodeToByteArray().toByteString(),
                         dataType = PortNum.TEXT_MESSAGE_APP.value,
@@ -226,7 +227,8 @@ abstract class CommonPacketDaoTest {
                     contact_key = contactKey,
                     received_time = nowMillis + normalMessages.size + index,
                     read = true,
-                    data = DataPacket(
+                    data =
+                    DataPacket(
                         to = DataPacket.BROADCAST,
                         bytes = text.encodeToByteArray().toByteString(),
                         dataType = PortNum.TEXT_MESSAGE_APP.value,
@@ -264,7 +266,8 @@ abstract class CommonPacketDaoTest {
                     contact_key = contactKey,
                     received_time = baseTime + id,
                     read = false,
-                    data = DataPacket(
+                    data =
+                    DataPacket(
                         to = DataPacket.BROADCAST,
                         bytes = "Chunk $id".encodeToByteArray().toByteString(),
                         dataType = PortNum.TEXT_MESSAGE_APP.value,

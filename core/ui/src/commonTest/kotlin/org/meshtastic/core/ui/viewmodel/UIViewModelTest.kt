@@ -268,18 +268,17 @@ class UIViewModelTest {
         assertEquals(TracerouteMapAvailability.Ok, result)
     }
 
-    private fun createViewModel() =
-        UIViewModel(
-            nodeDB = nodeRepository,
-            serviceRepository = serviceRepository,
-            radioController = radioController,
-            radioPrefs = radioPrefs,
-            meshLogRepository = meshLogRepository,
-            firmwareReleaseRepository = firmwareReleaseRepository,
-            uiPrefs = uiPrefs,
-            notificationManager = notificationManager,
-            packetRepository = packetRepository,
-            alertManager = AlertManager(),
-            snackbarManager = SnackbarManager(),
-        )
+    private fun createViewModel() = UIViewModel(
+        nodeDB = nodeRepository,
+        serviceRepository = serviceRepository,
+        radioController = radioController,
+        radioPrefs = radioPrefs,
+        meshLogRepository = meshLogRepository,
+        firmwareReleaseRepository = firmwareReleaseRepository,
+        uiPrefs = uiPrefs,
+        notificationManager = notificationManager,
+        packetRepository = packetRepository,
+        alertManager = AlertManager(),
+        snackbarManager = SnackbarManager(),
+    )
 }

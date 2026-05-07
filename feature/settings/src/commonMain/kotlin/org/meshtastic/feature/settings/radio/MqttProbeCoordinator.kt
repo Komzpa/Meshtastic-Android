@@ -29,13 +29,10 @@ import org.meshtastic.core.model.MqttProbeStatus
 import org.meshtastic.core.repository.MqttManager
 
 /**
- * Encapsulates MQTT broker reachability probing logic.
- * Injected into [RadioConfigViewModel] to keep probe state and cancellation self-contained.
+ * Encapsulates MQTT broker reachability probing logic. Injected into [RadioConfigViewModel] to keep probe state and
+ * cancellation self-contained.
  */
-class MqttProbeCoordinator(
-    private val mqttManager: MqttManager,
-    private val scope: CoroutineScope,
-) {
+class MqttProbeCoordinator(private val mqttManager: MqttManager, private val scope: CoroutineScope) {
     /** MQTT proxy connection state for the settings UI. */
     val mqttConnectionState: StateFlow<MqttConnectionState> = mqttManager.mqttConnectionState
 
@@ -47,21 +44,22 @@ class MqttProbeCoordinator(
     private var probeJob: Job? = null
 
     /**
-     * Run a one-shot reachability/credentials probe against an MQTT broker.
-     * Cancels any in-flight probe before starting a new one.
+     * Run a one-shot reachability/credentials probe against an MQTT broker. Cancels any in-flight probe before starting
+     * a new one.
      */
     fun probe(address: String, tlsEnabled: Boolean, username: String?, password: String?) {
         probeJob?.cancel()
         _probeStatus.value = MqttProbeStatus.Probing
-        probeJob = scope.launch {
-            val result =
-                safeCatching { mqttManager.probe(address, tlsEnabled, username, password) }
-                    .getOrElse { e ->
-                        Logger.w(e) { "MQTT probe threw" }
-                        MqttProbeStatus.Other(message = e.message)
-                    }
-            _probeStatus.value = result
-        }
+        probeJob =
+            scope.launch {
+                val result =
+                    safeCatching { mqttManager.probe(address, tlsEnabled, username, password) }
+                        .getOrElse { e ->
+                            Logger.w(e) { "MQTT probe threw" }
+                            MqttProbeStatus.Other(message = e.message)
+                        }
+                _probeStatus.value = result
+            }
     }
 
     /** Clear the latest probe result (e.g. when the user edits the address). */

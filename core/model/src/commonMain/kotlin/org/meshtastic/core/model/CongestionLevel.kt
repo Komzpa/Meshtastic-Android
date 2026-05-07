@@ -19,7 +19,6 @@ package org.meshtastic.core.model
 /**
  * Domain-level typealias for SDK's CongestionLevel.
  *
- * This provides a single import point for feature modules without directly coupling them
- * to the SDK package namespace.
+ * This provides a single import point for feature modules without directly coupling them to the SDK package namespace.
  */
 public typealias CongestionLevel = org.meshtastic.sdk.CongestionLevel

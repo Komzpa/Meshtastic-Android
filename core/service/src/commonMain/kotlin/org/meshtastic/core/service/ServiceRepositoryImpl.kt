@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
+import org.meshtastic.core.model.CongestionLevel
 import org.meshtastic.core.model.ConnectionState
 import org.meshtastic.core.model.MeshActivity
 import org.meshtastic.core.model.service.ServiceAction
@@ -33,7 +34,6 @@ import org.meshtastic.core.model.service.TracerouteResponse
 import org.meshtastic.core.repository.ServiceRepository
 import org.meshtastic.proto.ClientNotification
 import org.meshtastic.proto.MeshPacket
-import org.meshtastic.core.model.CongestionLevel
 
 /**
  * Platform-agnostic implementation of [ServiceRepository].

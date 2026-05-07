@@ -19,9 +19,8 @@ package org.meshtastic.core.model
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * Minimal interface exposing radio-config packet response state.
- * Used by feature/connections to observe config-loading progress without
- * depending on the full RadioConfigViewModel in feature/settings.
+ * Minimal interface exposing radio-config packet response state. Used by feature/connections to observe config-loading
+ * progress without depending on the full RadioConfigViewModel in feature/settings.
  */
 interface RadioConfigStateProvider {
     /** Current packet response state (loading/success/error/empty). */

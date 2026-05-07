@@ -25,25 +25,27 @@ import org.meshtastic.sdk.testing.InMemoryStorageProvider
 import kotlin.coroutines.CoroutineContext
 
 /**
- * Test-only RadioClient setup using FakeRadioTransport.
- * Provides deterministic handshake and packet injection for integration tests.
+ * Test-only RadioClient setup using FakeRadioTransport. Provides deterministic handshake and packet injection for
+ * integration tests.
  */
 class TestRadioClientProvider(
     val nodeNum: Int = 1,
     coroutineContext: CoroutineContext = SupervisorJob() + Dispatchers.Default,
 ) {
-    val transport = FakeRadioTransport(
-        identity = TransportIdentity("fake:test-radio-provider"),
-        autoHandshake = true,
-        nodeNum = nodeNum,
-    )
+    val transport =
+        FakeRadioTransport(
+            identity = TransportIdentity("fake:test-radio-provider"),
+            autoHandshake = true,
+            nodeNum = nodeNum,
+        )
 
-    val client: RadioClient = RadioClient.Builder()
-        .transport(transport)
-        .storage(InMemoryStorageProvider())
-        .autoSyncTimeOnConnect(false)
-        .coroutineContext(coroutineContext)
-        .build()
+    val client: RadioClient =
+        RadioClient.Builder()
+            .transport(transport)
+            .storage(InMemoryStorageProvider())
+            .autoSyncTimeOnConnect(false)
+            .coroutineContext(coroutineContext)
+            .build()
 
     suspend fun connect() {
         client.connect()

@@ -21,7 +21,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import kotlinx.io.bytestring.ByteString as KByteString
 import org.meshtastic.core.model.CongestionLevel
 import org.meshtastic.core.testing.FakeServiceRepository
 import org.meshtastic.proto.ClientNotification
@@ -37,6 +36,7 @@ import org.meshtastic.sdk.testing.InMemoryStorageProvider
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlinx.io.bytestring.ByteString as KByteString
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SdkEventBridgeTest {
@@ -70,10 +70,11 @@ class SdkEventBridgeTest {
 
     @Test
     fun `duplicated public key warning is logged without changing service state`() = runTest {
-        val serviceRepository = FakeServiceRepository().apply {
-            setClientNotification(ClientNotification(message = "existing"))
-            setCongestionLevel(CongestionLevel.HIGH)
-        }
+        val serviceRepository =
+            FakeServiceRepository().apply {
+                setClientNotification(ClientNotification(message = "existing"))
+                setCongestionLevel(CongestionLevel.HIGH)
+            }
         val bridge = SdkEventBridge(serviceRepository)
 
         bridge.handleEvent(MeshEvent.SecurityWarning.DuplicatedPublicKey)
@@ -84,9 +85,7 @@ class SdkEventBridgeTest {
 
     @Test
     fun `low entropy key warning is logged without changing service state`() = runTest {
-        val serviceRepository = FakeServiceRepository().apply {
-            setCongestionLevel(CongestionLevel.MEDIUM)
-        }
+        val serviceRepository = FakeServiceRepository().apply { setCongestionLevel(CongestionLevel.MEDIUM) }
         val bridge = SdkEventBridge(serviceRepository)
 
         bridge.handleEvent(MeshEvent.SecurityWarning.LowEntropyKey)
@@ -97,9 +96,8 @@ class SdkEventBridgeTest {
 
     @Test
     fun `packets dropped event is handled without crashing`() = runTest {
-        val serviceRepository = FakeServiceRepository().apply {
-            setClientNotification(ClientNotification(message = "keep"))
-        }
+        val serviceRepository =
+            FakeServiceRepository().apply { setClientNotification(ClientNotification(message = "keep")) }
         val bridge = SdkEventBridge(serviceRepository)
 
         bridge.handleEvent(MeshEvent.PacketsDropped(flow = DroppedFlow.Events, count = 4))
@@ -121,13 +119,14 @@ class SdkEventBridgeTest {
 
     private fun encodeFromRadio(fromRadio: FromRadio): Frame {
         val proto = FromRadio.ADAPTER.encode(fromRadio)
-        val frameBytes = ByteArray(4 + proto.size).apply {
-            this[0] = 0x94.toByte()
-            this[1] = 0xC3.toByte()
-            this[2] = (proto.size shr 8).toByte()
-            this[3] = (proto.size and 0xFF).toByte()
-            proto.copyInto(this, destinationOffset = 4)
-        }
+        val frameBytes =
+            ByteArray(4 + proto.size).apply {
+                this[0] = 0x94.toByte()
+                this[1] = 0xC3.toByte()
+                this[2] = (proto.size shr 8).toByte()
+                this[3] = (proto.size and 0xFF).toByte()
+                proto.copyInto(this, destinationOffset = 4)
+            }
         return Frame(KByteString(frameBytes))
     }
 

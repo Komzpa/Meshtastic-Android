@@ -17,6 +17,7 @@
 package org.meshtastic.core.data.radio
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.runTest
 import okio.ByteString.Companion.toByteString
 import org.meshtastic.proto.Data
 import org.meshtastic.proto.MeshPacket
@@ -27,7 +28,6 @@ import org.meshtastic.sdk.NodeId
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import kotlinx.coroutines.test.runTest
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SdkTopologyBridgeTest {
@@ -40,9 +40,11 @@ class SdkTopologyBridgeTest {
         bridge.handleNeighborInfoPacket(
             neighborInfoPacket(
                 from = 0x11111111,
-                info = NeighborInfo(
+                info =
+                NeighborInfo(
                     last_sent_by_id = 1234,
-                    neighbors = listOf(
+                    neighbors =
+                    listOf(
                         Neighbor(node_id = 0x22222222, snr = 7.5f),
                         Neighbor(node_id = 0x33333333, snr = -2.25f),
                     ),
@@ -68,10 +70,8 @@ class SdkTopologyBridgeTest {
         bridge.handleNeighborInfoPacket(
             MeshPacket(
                 from = 0x44444444,
-                decoded = Data(
-                    portnum = PortNum.NEIGHBORINFO_APP,
-                    payload = byteArrayOf(0x01, 0x02, 0x03).toByteString(),
-                ),
+                decoded =
+                Data(portnum = PortNum.NEIGHBORINFO_APP, payload = byteArrayOf(0x01, 0x02, 0x03).toByteString()),
             ),
         )
 
@@ -85,10 +85,7 @@ class SdkTopologyBridgeTest {
         val bridge = SdkTopologyBridge(topologyService)
 
         bridge.handleNeighborInfoPacket(
-            neighborInfoPacket(
-                from = 0x55555555,
-                info = NeighborInfo(last_sent_by_id = 999, neighbors = emptyList()),
-            ),
+            neighborInfoPacket(from = 0x55555555, info = NeighborInfo(last_sent_by_id = 999, neighbors = emptyList())),
         )
 
         assertTrue(topologyService.edges.value.isEmpty())
@@ -103,11 +100,10 @@ class SdkTopologyBridgeTest {
         bridge.handleNeighborInfoPacket(
             neighborInfoPacket(
                 from = 0x66666666,
-                info = NeighborInfo(
-                    neighbors = listOf(
-                        Neighbor(node_id = 0x11110000, snr = 1f),
-                        Neighbor(node_id = 0x22220000, snr = 2f),
-                    ),
+                info =
+                NeighborInfo(
+                    neighbors =
+                    listOf(Neighbor(node_id = 0x11110000, snr = 1f), Neighbor(node_id = 0x22220000, snr = 2f)),
                 ),
             ),
         )
@@ -129,18 +125,17 @@ class SdkTopologyBridgeTest {
         val topologyService = MeshTopologyService()
         val bridge = SdkTopologyBridge(topologyService)
 
-        bridge.handleNeighborInfoPacket(MeshPacket(from = 0x77777777, decoded = Data(portnum = PortNum.NEIGHBORINFO_APP)))
+        bridge.handleNeighborInfoPacket(
+            MeshPacket(from = 0x77777777, decoded = Data(portnum = PortNum.NEIGHBORINFO_APP)),
+        )
 
         assertTrue(topologyService.edges.value.isEmpty())
         assertEquals(1, topologyService.nodeCount.value)
     }
 
-    private fun neighborInfoPacket(from: Int, info: NeighborInfo) =
-        MeshPacket(
-            from = from,
-            decoded = Data(
-                portnum = PortNum.NEIGHBORINFO_APP,
-                payload = NeighborInfo.ADAPTER.encode(info).toByteString(),
-            ),
-        )
+    private fun neighborInfoPacket(from: Int, info: NeighborInfo) = MeshPacket(
+        from = from,
+        decoded =
+        Data(portnum = PortNum.NEIGHBORINFO_APP, payload = NeighborInfo.ADAPTER.encode(info).toByteString()),
+    )
 }

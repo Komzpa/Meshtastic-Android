@@ -21,8 +21,8 @@ import androidx.room3.Entity
 import androidx.room3.PrimaryKey
 
 /**
- * Persists app-local node metadata that survives process death.
- * These fields are user preferences/annotations that the SDK does not manage.
+ * Persists app-local node metadata that survives process death. These fields are user preferences/annotations that the
+ * SDK does not manage.
  */
 @Entity(tableName = "node_metadata")
 data class NodeMetadataEntity(

@@ -23,8 +23,7 @@ import org.meshtastic.core.repository.NodeRepository
 /**
  * Use case for performing administrative and destructive actions on mesh nodes.
  *
- * Methods suspend until the device acknowledges. On failure, they propagate
- * [org.meshtastic.core.model.AdminException].
+ * Methods suspend until the device acknowledges. On failure, they propagate [org.meshtastic.core.model.AdminException].
  */
 @Single
 open class AdminActionsUseCase

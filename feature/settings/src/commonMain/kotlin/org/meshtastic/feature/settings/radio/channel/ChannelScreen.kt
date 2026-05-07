@@ -83,6 +83,7 @@ import org.meshtastic.core.ui.component.AdaptiveTwoPane
 import org.meshtastic.core.ui.component.ChannelSelection
 import org.meshtastic.core.ui.component.MainAppBar
 import org.meshtastic.core.ui.component.MeshtasticDialog
+import org.meshtastic.core.ui.component.PacketResponseStateDialog
 import org.meshtastic.core.ui.component.PreferenceFooter
 import org.meshtastic.core.ui.component.QrDialog
 import org.meshtastic.core.ui.icon.ChevronRight
@@ -95,7 +96,6 @@ import org.meshtastic.feature.settings.channel.ChannelViewModel
 import org.meshtastic.feature.settings.navigation.ConfigRoute
 import org.meshtastic.feature.settings.navigation.ModuleRoute
 import org.meshtastic.feature.settings.radio.RadioConfigViewModel
-import org.meshtastic.core.ui.component.PacketResponseStateDialog
 import org.meshtastic.proto.ChannelSet
 import org.meshtastic.proto.ChannelSettings
 import org.meshtastic.proto.Config
@@ -140,8 +140,8 @@ fun ChannelScreen(
                 radioConfigViewModel.clearPacketResponse()
             },
             onComplete = {
-                val navRoute = (radioConfigState.route as? ConfigRoute)?.route
-                    ?: (radioConfigState.route as? ModuleRoute)?.route
+                val navRoute =
+                    (radioConfigState.route as? ConfigRoute)?.route ?: (radioConfigState.route as? ModuleRoute)?.route
                 if (navRoute != null) {
                     isWaiting = false
                     radioConfigViewModel.clearPacketResponse()

@@ -52,6 +52,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.meshtastic.core.model.ConnectionState
+import org.meshtastic.core.model.RadioConfigStateProvider
 import org.meshtastic.core.navigation.Route
 import org.meshtastic.core.navigation.SettingsRoute
 import org.meshtastic.core.resources.Res
@@ -62,6 +63,7 @@ import org.meshtastic.core.resources.unknown_device
 import org.meshtastic.core.ui.component.AdaptiveTwoPane
 import org.meshtastic.core.ui.component.ListItem
 import org.meshtastic.core.ui.component.MainAppBar
+import org.meshtastic.core.ui.component.PacketResponseStateDialog
 import org.meshtastic.core.ui.icon.Language
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.NoDevice
@@ -78,8 +80,6 @@ import org.meshtastic.feature.connections.ui.components.ConnectingDeviceInfo
 import org.meshtastic.feature.connections.ui.components.CurrentlyConnectedInfo
 import org.meshtastic.feature.connections.ui.components.DeviceList
 import org.meshtastic.feature.connections.ui.components.TransportFilterChips
-import org.meshtastic.core.model.RadioConfigStateProvider
-import org.meshtastic.core.ui.component.PacketResponseStateDialog
 import kotlin.uuid.ExperimentalUuidApi
 
 /**

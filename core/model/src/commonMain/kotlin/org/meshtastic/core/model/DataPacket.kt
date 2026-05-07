@@ -18,8 +18,8 @@ package org.meshtastic.core.model
 
 import co.touchlab.kermit.Logger
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -61,15 +61,13 @@ enum class MessageStatus : CommonParcelable {
 @Serializable
 @CommonParcelize
 data class DataPacket(
-    @Serializable(with = NodeNumSerializer::class)
-    var to: Int = BROADCAST,
+    @Serializable(with = NodeNumSerializer::class) var to: Int = BROADCAST,
     @Serializable(with = ByteStringSerializer::class)
     @CommonTypeParceler<ByteString?, ByteStringParceler>
     var bytes: ByteString?,
     // A port number for this packet
     var dataType: Int,
-    @Serializable(with = NodeNumSerializer::class)
-    var from: Int = LOCAL,
+    @Serializable(with = NodeNumSerializer::class) var from: Int = LOCAL,
     var time: Long = nowMillis, // msecs since 1970
     var id: Int = 0, // 0 means unassigned
     var status: MessageStatus? = MessageStatus.UNKNOWN,
@@ -210,11 +208,14 @@ data class DataPacket(
             val normalized = id.trim()
             return when {
                 normalized.equals("^all", ignoreCase = true) -> BROADCAST
+
                 normalized.equals("^local", ignoreCase = true) -> LOCAL
-                else -> NodeId.fromDefaultId(normalized)?.raw
-                    ?: NodeId.fromDefaultId("!$normalized")?.raw
-                    ?: runCatching { normalized.toLong(16).toInt() }.getOrNull()
-                    ?: throw SerializationException("Unsupported node id: $id")
+
+                else ->
+                    NodeId.fromDefaultId(normalized)?.raw
+                        ?: NodeId.fromDefaultId("!$normalized")?.raw
+                        ?: runCatching { normalized.toLong(16).toInt() }.getOrNull()
+                        ?: throw SerializationException("Unsupported node id: $id")
             }
         }
     }
@@ -230,7 +231,9 @@ private object NodeNumSerializer : KSerializer<Int> {
     override fun deserialize(decoder: Decoder): Int {
         if (decoder is JsonDecoder) {
             val primitive = decoder.decodeJsonElement().jsonPrimitive
-            primitive.intOrNull?.let { return it }
+            primitive.intOrNull?.let {
+                return it
+            }
             return DataPacket.parseNodeNum(primitive.content)
         }
         return DataPacket.parseNodeNum(decoder.decodeString())

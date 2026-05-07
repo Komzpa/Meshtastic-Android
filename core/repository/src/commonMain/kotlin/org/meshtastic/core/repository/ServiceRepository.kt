@@ -19,13 +19,13 @@ package org.meshtastic.core.repository
 import co.touchlab.kermit.Severity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import org.meshtastic.core.model.CongestionLevel
 import org.meshtastic.core.model.ConnectionState
 import org.meshtastic.core.model.MeshActivity
 import org.meshtastic.core.model.service.ServiceAction
 import org.meshtastic.core.model.service.TracerouteResponse
 import org.meshtastic.proto.ClientNotification
 import org.meshtastic.proto.MeshPacket
-import org.meshtastic.core.model.CongestionLevel
 
 /**
  * Interface for managing background service state, connection status, and mesh events.
@@ -34,8 +34,8 @@ import org.meshtastic.core.model.CongestionLevel
  * maintains reactive flows for connection status, error messages, and incoming mesh traffic.
  *
  * **Connection state contract:** [connectionState] is the **canonical, app-level** connection state that all UI,
- * feature modules, and ViewModels should observe. The SDK's [SdkStateBridge] is the sole writer of this state;
- * it maps SDK connection events into app-level transitions via [setConnectionState].
+ * feature modules, and ViewModels should observe. The SDK's [SdkStateBridge] is the sole writer of this state; it maps
+ * SDK connection events into app-level transitions via [setConnectionState].
  */
 @Suppress("TooManyFunctions")
 interface ServiceRepository {
@@ -147,9 +147,8 @@ interface ServiceRepository {
     /**
      * Flow of mesh network send/receive activity events.
      *
-     * Emits [MeshActivity.Receive] when packets arrive from the mesh,
-     * and [MeshActivity.Send] when packets are sent to the radio.
-     * Used to drive the connection-icon animation in the nav bar.
+     * Emits [MeshActivity.Receive] when packets arrive from the mesh, and [MeshActivity.Send] when packets are sent to
+     * the radio. Used to drive the connection-icon animation in the nav bar.
      */
     val meshActivityFlow: Flow<MeshActivity>
 

@@ -57,9 +57,7 @@ import org.meshtastic.proto.User
 import org.meshtastic.proto.NodeInfo as ProtoNodeInfo
 import org.meshtastic.proto.Position as ProtoPosition
 
-/**
- * Maintains live mesh node state and exposes reactive node data for the app layer.
- */
+/** Maintains live mesh node state and exposes reactive node data for the app layer. */
 @Single(binds = [NodeRepository::class, NodeIdLookup::class])
 @Suppress("TooManyFunctions", "LongParameterList")
 class SdkNodeRepositoryImpl(
@@ -74,12 +72,13 @@ class SdkNodeRepositoryImpl(
     private val _myNodeNum = MutableStateFlow<Int?>(null)
 
     // Cached metadata from Room (loaded on init, updated on writes)
-    private val _metadataCache = MutableStateFlow<Map<Int, NodeMetadataEntity>>(emptyMap())
+    private val metadataCache = MutableStateFlow<Map<Int, NodeMetadataEntity>>(emptyMap())
 
     init {
         scope.launch {
-            dbManager.currentDb.flatMapLatest { db -> db.nodeMetadataDao().getAllFlow() }
-                .collect { list -> _metadataCache.value = list.associateBy { it.num } }
+            dbManager.currentDb
+                .flatMapLatest { db -> db.nodeMetadataDao().getAllFlow() }
+                .collect { list -> metadataCache.value = list.associateBy { it.num } }
         }
     }
 
@@ -94,12 +93,10 @@ class SdkNodeRepositoryImpl(
             .stateIn(scope, SharingStarted.WhileSubscribed(5_000), null)
 
     override val myId: StateFlow<String?> =
-        ourNodeInfo.map { it?.user?.id }
-            .stateIn(scope, SharingStarted.WhileSubscribed(5_000), null)
+        ourNodeInfo.map { it?.user?.id }.stateIn(scope, SharingStarted.WhileSubscribed(5_000), null)
 
     override val localStats: StateFlow<LocalStats> =
-        localStatsDataSource.localStatsFlow
-            .stateIn(scope, SharingStarted.WhileSubscribed(5_000), LocalStats())
+        localStatsDataSource.localStatsFlow.stateIn(scope, SharingStarted.WhileSubscribed(5_000), LocalStats())
 
     override fun updateLocalStats(stats: LocalStats) {
         scope.launch { localStatsDataSource.setLocalStats(stats) }
@@ -108,16 +105,13 @@ class SdkNodeRepositoryImpl(
     override val onlineNodeCount: Flow<Int> =
         _nodeDBbyNum.map { map -> map.values.count { it.lastHeard > onlineTimeThreshold() } }
 
-    override val totalNodeCount: Flow<Int> =
-        _nodeDBbyNum.map { it.size }
+    override val totalNodeCount: Flow<Int> = _nodeDBbyNum.map { it.size }
 
     override fun effectiveLogNodeId(nodeNum: Int): Flow<Int> =
-        _myNodeNum.map { myNum -> if (nodeNum == myNum) MeshLog.NODE_NUM_LOCAL else nodeNum }
-            .distinctUntilChanged()
+        _myNodeNum.map { myNum -> if (nodeNum == myNum) MeshLog.NODE_NUM_LOCAL else nodeNum }.distinctUntilChanged()
 
-    override fun getNode(userId: String): Node =
-        _nodeDBbyNum.value.values.find { it.user.id == userId }
-            ?: Node(num = runCatching { DataPacket.parseNodeNum(userId) }.getOrDefault(0), user = getUser(userId))
+    override fun getNode(userId: String): Node = _nodeDBbyNum.value.values.find { it.user.id == userId }
+        ?: Node(num = runCatching { DataPacket.parseNodeNum(userId) }.getOrDefault(0), user = getUser(userId))
 
     override fun getUser(nodeNum: Int): User = getUser(DataPacket.nodeNumToId(nodeNum))
 
@@ -156,10 +150,11 @@ class SdkNodeRepositoryImpl(
     ): Flow<List<Node>> = _nodeDBbyNum.map { map ->
         map.values
             .filter { node ->
-                val matchesFilter = filter.isBlank() ||
-                    node.user.long_name.contains(filter, ignoreCase = true) ||
-                    node.user.short_name.contains(filter, ignoreCase = true) ||
-                    node.user.id.contains(filter, ignoreCase = true)
+                val matchesFilter =
+                    filter.isBlank() ||
+                        node.user.long_name.contains(filter, ignoreCase = true) ||
+                        node.user.short_name.contains(filter, ignoreCase = true) ||
+                        node.user.id.contains(filter, ignoreCase = true)
                 val matchesUnknown = includeUnknown || node.user.hw_model != HardwareModel.UNSET
                 val matchesOnline = !onlyOnline || node.lastHeard > onlineTimeThreshold()
                 val matchesDirect = !onlyDirect || node.hopsAway == 0
@@ -415,18 +410,19 @@ class SdkNodeRepositoryImpl(
     private fun getOrCreateNode(n: Int, channel: Int = 0): Node = _nodeDBbyNum.value[n]
         ?: run {
             val userId = DataPacket.nodeNumToDefaultId(n)
-            val defaultUser = User(
-                id = userId,
-                long_name = "Meshtastic ${userId.takeLast(n = 4)}",
-                short_name = userId.takeLast(n = 4),
-                hw_model = HardwareModel.UNSET,
-            )
+            val defaultUser =
+                User(
+                    id = userId,
+                    long_name = "Meshtastic ${userId.takeLast(n = 4)}",
+                    short_name = userId.takeLast(n = 4),
+                    hw_model = HardwareModel.UNSET,
+                )
             Node(num = n, user = defaultUser, channel = channel)
         }
 
     /** Enriches a node with persisted local metadata (favorites, notes, ignore, mute). */
     private fun enrichWithMetadata(node: Node): Node {
-        val meta = _metadataCache.value[node.num] ?: return node
+        val meta = metadataCache.value[node.num] ?: return node
         return node.copy(
             isFavorite = meta.isFavorite,
             isIgnored = meta.isIgnored,
@@ -451,7 +447,7 @@ class SdkNodeRepositoryImpl(
 
     /** Ensures a metadata row exists for the given node, creating a default if needed. */
     private suspend fun ensureMetadataExists(num: Int) {
-        if (_metadataCache.value[num] == null) {
+        if (metadataCache.value[num] == null) {
             dbManager.withDb { it.nodeMetadataDao().upsert(NodeMetadataEntity(num = num)) }
         }
     }

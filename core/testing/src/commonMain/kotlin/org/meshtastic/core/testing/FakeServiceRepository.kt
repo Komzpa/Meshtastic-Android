@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.meshtastic.core.model.CongestionLevel
 import org.meshtastic.core.model.ConnectionState
 import org.meshtastic.core.model.MeshActivity
 import org.meshtastic.core.model.service.ServiceAction
@@ -30,7 +31,6 @@ import org.meshtastic.core.model.service.TracerouteResponse
 import org.meshtastic.core.repository.ServiceRepository
 import org.meshtastic.proto.ClientNotification
 import org.meshtastic.proto.MeshPacket
-import org.meshtastic.core.model.CongestionLevel
 
 @Suppress("TooManyFunctions")
 class FakeServiceRepository : ServiceRepository {

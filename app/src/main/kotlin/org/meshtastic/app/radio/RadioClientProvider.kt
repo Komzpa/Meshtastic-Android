@@ -47,10 +47,9 @@ import org.meshtastic.sdk.transport.tcp.TcpTransport
  * service can react to connection changes with `flatMapLatest`.
  */
 @Single(binds = [SdkClientLifecycle::class, RadioClientAccessor::class])
-class RadioClientProvider(
-    private val context: Context,
-    private val radioPrefs: RadioPrefs,
-) : SdkClientLifecycle, RadioClientAccessor {
+class RadioClientProvider(private val context: Context, private val radioPrefs: RadioPrefs) :
+    SdkClientLifecycle,
+    RadioClientAccessor {
     private val _client = MutableStateFlow<RadioClient?>(null)
 
     /** Active [RadioClient], or `null` when disconnected or between connections. */
@@ -73,35 +72,41 @@ class RadioClientProvider(
                     return@withLock
                 }
 
-        val interfaceChar = rawAddress.firstOrNull() ?: run {
-            Logger.w { "RadioClientProvider: empty address — skipping connect" }
-            return@withLock
-        }
+        val interfaceChar =
+            rawAddress.firstOrNull()
+                ?: run {
+                    Logger.w { "RadioClientProvider: empty address — skipping connect" }
+                    return@withLock
+                }
         val addressPayload = rawAddress.substring(1) // strip leading interface char
 
-        val transport: RadioTransport = when (InterfaceId.forIdChar(interfaceChar)) {
-            InterfaceId.BLUETOOTH -> {
-                Logger.i { "RadioClientProvider: building BLE transport for $addressPayload" }
-                BleTransport(addressPayload) { autoConnectIf { true } }
-            }
+        val transport: RadioTransport =
+            when (InterfaceId.forIdChar(interfaceChar)) {
+                InterfaceId.BLUETOOTH -> {
+                    Logger.i { "RadioClientProvider: building BLE transport for $addressPayload" }
+                    BleTransport(addressPayload) { autoConnectIf { true } }
+                }
 
-            InterfaceId.TCP -> {
-                val (host, port) = parseTcpAddress(addressPayload)
-                Logger.i { "RadioClientProvider: building TCP transport for $host:$port" }
-                TcpTransport(host, port)
-            }
+                InterfaceId.TCP -> {
+                    val (host, port) = parseTcpAddress(addressPayload)
+                    Logger.i { "RadioClientProvider: building TCP transport for $host:$port" }
+                    TcpTransport(host, port)
+                }
 
-            InterfaceId.SERIAL -> {
-                Logger.i { "RadioClientProvider: building Serial transport for $addressPayload" }
-                AndroidSerialPorts.init(context)
-                AndroidSerialPorts.open(addressPayload)
-            }
+                InterfaceId.SERIAL -> {
+                    Logger.i { "RadioClientProvider: building Serial transport for $addressPayload" }
+                    AndroidSerialPorts.init(context)
+                    AndroidSerialPorts.open(addressPayload)
+                }
 
-            InterfaceId.MOCK, InterfaceId.NOP, null -> {
-                Logger.w { "RadioClientProvider: unsupported transport type '$interfaceChar' ($rawAddress)" }
-                return@withLock
+                InterfaceId.MOCK,
+                InterfaceId.NOP,
+                null,
+                -> {
+                    Logger.w { "RadioClientProvider: unsupported transport type '$interfaceChar' ($rawAddress)" }
+                    return@withLock
+                }
             }
-        }
 
         // Clear first so observers see null during teardown
         val old = _client.value

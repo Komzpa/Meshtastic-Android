@@ -27,8 +27,8 @@ import org.jetbrains.compose.resources.StringResource
 import org.meshtastic.core.common.util.ioDispatcher
 import org.meshtastic.core.common.util.nowSeconds
 import org.meshtastic.core.model.DataPacket
-import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.MessageSender
+import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.TracerouteOverlay
 import org.meshtastic.core.repository.MapPrefs
 import org.meshtastic.core.repository.NodeRepository
@@ -141,8 +141,7 @@ open class BaseMapViewModel(
         mapPrefs.setLastHeardTrackFilter(filter.seconds)
     }
 
-    open fun getUser(userId: String?) =
-        nodeRepository.getUser(userId ?: DataPacket.nodeNumToId(DataPacket.BROADCAST))
+    open fun getUser(userId: String?) = nodeRepository.getUser(userId ?: DataPacket.nodeNumToId(DataPacket.BROADCAST))
 
     fun getNodeOrFallback(nodeNum: Int): Node = nodeRepository.nodeDBbyNum.value[nodeNum] ?: Node(num = nodeNum)
 

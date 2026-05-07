@@ -119,8 +119,7 @@ class FakeRadioController :
 
     override suspend fun getCannedMessages(destNum: Int): String = ""
 
-    override suspend fun getDeviceConnectionStatus(destNum: Int): DeviceConnectionStatus =
-        DeviceConnectionStatus()
+    override suspend fun getDeviceConnectionStatus(destNum: Int): DeviceConnectionStatus = DeviceConnectionStatus()
 
     override suspend fun reboot(destNum: Int) {}
 
@@ -153,12 +152,16 @@ class FakeRadioController :
 
     override suspend fun editSettings(destNum: Int, block: suspend DeviceAdminEdit.() -> Unit) {
         editSettingsCalled = true
-        val edit = object : DeviceAdminEdit {
-            override suspend fun setConfig(config: Config) {}
-            override suspend fun setModuleConfig(config: ModuleConfig) {}
-            override suspend fun setOwner(user: User) {}
-            override suspend fun setChannel(channel: Channel) {}
-        }
+        val edit =
+            object : DeviceAdminEdit {
+                override suspend fun setConfig(config: Config) {}
+
+                override suspend fun setModuleConfig(config: ModuleConfig) {}
+
+                override suspend fun setOwner(user: User) {}
+
+                override suspend fun setChannel(channel: Channel) {}
+            }
         block(edit)
     }
 

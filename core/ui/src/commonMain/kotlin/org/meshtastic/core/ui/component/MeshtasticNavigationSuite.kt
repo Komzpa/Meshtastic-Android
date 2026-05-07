@@ -190,10 +190,14 @@ private fun NavigationIconContent(
                     if (isConnectionsRoute) {
                         when (connectionState) {
                             ConnectionState.Connected -> stringResource(Res.string.connected)
+
                             is ConnectionState.Connecting,
                             is ConnectionState.Configuring,
-                            is ConnectionState.Reconnecting -> stringResource(Res.string.connecting)
+                            is ConnectionState.Reconnecting,
+                            -> stringResource(Res.string.connecting)
+
                             ConnectionState.DeviceSleep -> stringResource(Res.string.device_sleeping)
+
                             ConnectionState.Disconnected -> stringResource(Res.string.disconnected)
                         }
                     } else {

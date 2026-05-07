@@ -23,8 +23,8 @@ import org.meshtastic.core.model.InterfaceId
 /**
  * Thin interface exposing device-address and connection-management operations to feature modules.
  *
- * The SDK now owns the raw transport (BLE, TCP, Serial). This interface retains only the device-selection
- * surface that Scanner and connection UIs require.
+ * The SDK now owns the raw transport (BLE, TCP, Serial). This interface retains only the device-selection surface that
+ * Scanner and connection UIs require.
  */
 interface RadioInterfaceService {
     /** The device types supported by this platform's radio interface. */

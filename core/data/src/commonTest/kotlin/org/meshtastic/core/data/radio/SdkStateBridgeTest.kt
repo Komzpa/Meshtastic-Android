@@ -107,7 +107,8 @@ class SdkStateBridgeTest {
                     ),
                 )
             }
-        val (transport, client) = connectedClient(StateBridgeHeartbeatStorageProvider(mapOf(remoteNode to staleHeartbeatMs)))
+        val (transport, client) =
+            connectedClient(StateBridgeHeartbeatStorageProvider(mapOf(remoteNode to staleHeartbeatMs)))
         buildBridge(client, nodeRepository)
 
         client.connect()
@@ -116,11 +117,7 @@ class SdkStateBridgeTest {
         runCurrent()
 
         transport.injectPacket(
-            MeshPacket(
-                from = remoteNode.raw,
-                to = 0,
-                decoded = Data(portnum = PortNum.TEXT_MESSAGE_APP),
-            ),
+            MeshPacket(from = remoteNode.raw, to = 0, decoded = Data(portnum = PortNum.TEXT_MESSAGE_APP)),
         )
         runCurrent()
 
@@ -185,13 +182,7 @@ class SdkStateBridgeTest {
         )
         runCurrent()
 
-        verifySuspend {
-            packetRepository.updateSFPPStatusByHash(
-                any(),
-                MessageStatus.SFPP_CONFIRMED,
-                0xFEDCBA98L,
-            )
-        }
+        verifySuspend { packetRepository.updateSFPPStatusByHash(any(), MessageStatus.SFPP_CONFIRMED, 0xFEDCBA98L) }
 
         client.disconnect()
     }
@@ -210,14 +201,16 @@ class SdkStateBridgeTest {
             MeshPacket(
                 from = 0x11111111, // "own node" — triggers congestion from local metrics
                 to = 0,
-                decoded = Data(
+                decoded =
+                Data(
                     portnum = PortNum.TELEMETRY_APP,
-                    payload = org.meshtastic.proto.Telemetry(
-                        device_metrics = org.meshtastic.proto.DeviceMetrics(
-                            air_util_tx = 80f,
-                            channel_utilization = 85f,
-                        ),
-                    ).let { org.meshtastic.proto.Telemetry.ADAPTER.encode(it).toByteString() },
+                    payload =
+                    org.meshtastic.proto
+                        .Telemetry(
+                            device_metrics =
+                            org.meshtastic.proto.DeviceMetrics(air_util_tx = 80f, channel_utilization = 85f),
+                        )
+                        .let { org.meshtastic.proto.Telemetry.ADAPTER.encode(it).toByteString() },
                 ),
             ),
         )
@@ -240,7 +233,8 @@ class SdkStateBridgeTest {
         // Inject a StoreAndForward heartbeat from a server node to trigger server discovery
         transport.injectStoreForwardResponse(
             requestId = 0,
-            message = org.meshtastic.proto.StoreAndForward(
+            message =
+            org.meshtastic.proto.StoreAndForward(
                 rr = org.meshtastic.proto.StoreAndForward.RequestResponse.ROUTER_HEARTBEAT,
                 heartbeat = org.meshtastic.proto.StoreAndForward.Heartbeat(period = 900, secondary = 0),
             ),
@@ -260,7 +254,12 @@ class SdkStateBridgeTest {
         myNodeNum: Int = 0x11111111,
         presenceTimeout: Duration = 1.seconds,
     ): Pair<FakeRadioTransport, RadioClient> {
-        val transport = FakeRadioTransport(identity = TransportIdentity("fake:state-bridge"), autoHandshake = true, nodeNum = myNodeNum)
+        val transport =
+            FakeRadioTransport(
+                identity = TransportIdentity("fake:state-bridge"),
+                autoHandshake = true,
+                nodeNum = myNodeNum,
+            )
         val client =
             RadioClient.Builder()
                 .transport(transport)
@@ -277,32 +276,36 @@ class SdkStateBridgeTest {
         nodeRepository: FakeNodeRepository,
         packetRepository: PacketRepository = mock(MockMode.autofill),
         serviceRepository: FakeServiceRepository = FakeServiceRepository(),
-    ): SdkStateBridge =
-        SdkStateBridge(
-            accessor = TestRadioClientAccessor(client),
-            serviceRepository = serviceRepository,
-            nodeRepository = nodeRepository,
-            packetRepository = lazyOf(packetRepository),
-            locationManager = NoOpLocationManager,
-            topologyService = MeshTopologyService(),
-            uiPrefs = FakeUiPrefs(),
-            dispatchers = CoroutineDispatchers(
-                io = backgroundScope.coroutineContext[kotlin.coroutines.ContinuationInterceptor] as kotlinx.coroutines.CoroutineDispatcher,
-                main = backgroundScope.coroutineContext[kotlin.coroutines.ContinuationInterceptor] as kotlinx.coroutines.CoroutineDispatcher,
-                default = backgroundScope.coroutineContext[kotlin.coroutines.ContinuationInterceptor] as kotlinx.coroutines.CoroutineDispatcher,
-            ),
-        )
+    ): SdkStateBridge = SdkStateBridge(
+        accessor = TestRadioClientAccessor(client),
+        serviceRepository = serviceRepository,
+        nodeRepository = nodeRepository,
+        packetRepository = lazyOf(packetRepository),
+        locationManager = NoOpLocationManager,
+        topologyService = MeshTopologyService(),
+        uiPrefs = FakeUiPrefs(),
+        dispatchers =
+        CoroutineDispatchers(
+            io =
+            backgroundScope.coroutineContext[kotlin.coroutines.ContinuationInterceptor]
+                as kotlinx.coroutines.CoroutineDispatcher,
+            main =
+            backgroundScope.coroutineContext[kotlin.coroutines.ContinuationInterceptor]
+                as kotlinx.coroutines.CoroutineDispatcher,
+            default =
+            backgroundScope.coroutineContext[kotlin.coroutines.ContinuationInterceptor]
+                as kotlinx.coroutines.CoroutineDispatcher,
+        ),
+    )
 
-    private fun FakeRadioTransport.injectSfpp(
-        message: StoreForwardPlusPlus,
-        fromNode: Int = 0x10203040,
-    ) {
+    private fun FakeRadioTransport.injectSfpp(message: StoreForwardPlusPlus, fromNode: Int = 0x10203040) {
         injectPacket(
             MeshPacket(
                 id = 1,
                 from = fromNode,
                 to = 0,
-                decoded = Data(
+                decoded =
+                Data(
                     portnum = PortNum.STORE_FORWARD_APP,
                     payload = StoreForwardPlusPlus.ADAPTER.encode(message).toByteString(),
                 ),
@@ -325,13 +328,8 @@ class SdkStateBridgeTest {
     }
 }
 
-private class StateBridgeHeartbeatStorageProvider(
-    private val heartbeats: Map<NodeId, Long>,
-) : StorageProvider {
-    override suspend fun activate(identity: TransportIdentity): DeviceStorage =
-        InMemoryStorage().also { storage ->
-            heartbeats.forEach { (nodeId, heartbeatMs) ->
-                storage.saveHeartbeat(nodeId, heartbeatMs)
-            }
-        }
+private class StateBridgeHeartbeatStorageProvider(private val heartbeats: Map<NodeId, Long>) : StorageProvider {
+    override suspend fun activate(identity: TransportIdentity): DeviceStorage = InMemoryStorage().also { storage ->
+        heartbeats.forEach { (nodeId, heartbeatMs) -> storage.saveHeartbeat(nodeId, heartbeatMs) }
+    }
 }

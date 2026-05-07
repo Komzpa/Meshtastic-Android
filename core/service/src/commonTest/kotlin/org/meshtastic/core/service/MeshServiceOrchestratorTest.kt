@@ -81,14 +81,15 @@ class MeshServiceOrchestratorTest {
         every { serviceRepository.meshPacketFlow } returns MutableSharedFlow()
         every { serviceRepository.connectionState } returns MutableStateFlow(ConnectionState.Disconnected)
 
-        val takMeshIntegration = TAKMeshIntegration(
-            takServerManager = takServerManager,
-            radioController = radioController,
-            nodeRepository = nodeRepository,
-            serviceRepository = serviceRepository,
-            radioConfigRepository = radioConfigRepository,
-            cotHandler = cotHandler,
-        )
+        val takMeshIntegration =
+            TAKMeshIntegration(
+                takServerManager = takServerManager,
+                radioController = radioController,
+                nodeRepository = nodeRepository,
+                serviceRepository = serviceRepository,
+                radioConfigRepository = radioConfigRepository,
+                cotHandler = cotHandler,
+            )
 
         return MeshServiceOrchestrator(
             radioPrefs = radioPrefs,

@@ -319,7 +319,8 @@ class MeshServiceNotificationsImpl(
 
                 is ConnectionState.Connecting,
                 is ConnectionState.Configuring,
-                is ConnectionState.Reconnecting -> getString(Res.string.connecting)
+                is ConnectionState.Reconnecting,
+                -> getString(Res.string.connecting)
             }
 
         // Update caches if telemetry is provided

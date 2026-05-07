@@ -30,8 +30,8 @@ import org.meshtastic.proto.DeviceProfile
 import org.meshtastic.proto.User
 
 /**
- * Encapsulates device-profile import/export/install operations.
- * Injected into [RadioConfigViewModel] to keep file I/O logic self-contained.
+ * Encapsulates device-profile import/export/install operations. Injected into [RadioConfigViewModel] to keep file I/O
+ * logic self-contained.
  */
 class ProfileCoordinator(
     private val fileService: FileService,

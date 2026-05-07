@@ -58,7 +58,9 @@ interface PacketDao {
     ORDER BY received_time DESC
     """,
     )
-    fun getContactKeys(myNodeNum: Int): Flow<
+    fun getContactKeys(
+        myNodeNum: Int,
+    ): Flow<
         Map<
             @MapColumn(columnName = "contact_key")
             String,

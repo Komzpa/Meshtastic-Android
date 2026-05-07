@@ -51,6 +51,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.jetbrains.compose.resources.stringResource
 import org.meshtastic.core.model.Capabilities
 import org.meshtastic.core.model.Channel
+import org.meshtastic.core.model.ResponseState
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.add
 import org.meshtastic.core.resources.cancel
@@ -58,6 +59,7 @@ import org.meshtastic.core.resources.channels
 import org.meshtastic.core.resources.press_and_drag
 import org.meshtastic.core.resources.send
 import org.meshtastic.core.ui.component.MainAppBar
+import org.meshtastic.core.ui.component.PacketResponseStateDialog
 import org.meshtastic.core.ui.component.PreferenceFooter
 import org.meshtastic.core.ui.component.dragContainer
 import org.meshtastic.core.ui.component.dragDropItemsIndexed
@@ -65,14 +67,12 @@ import org.meshtastic.core.ui.component.rememberDragDropState
 import org.meshtastic.core.ui.icon.Add
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.feature.settings.radio.RadioConfigViewModel
-import org.meshtastic.core.model.ResponseState
 import org.meshtastic.feature.settings.radio.channel.component.ChannelCard
 import org.meshtastic.feature.settings.radio.channel.component.ChannelConfigHeader
 import org.meshtastic.feature.settings.radio.channel.component.ChannelLegend
 import org.meshtastic.feature.settings.radio.channel.component.ChannelLegendDialog
 import org.meshtastic.feature.settings.radio.channel.component.EditChannelDialog
 import org.meshtastic.feature.settings.radio.component.LoadingOverlay
-import org.meshtastic.core.ui.component.PacketResponseStateDialog
 import org.meshtastic.proto.ChannelSettings
 import org.meshtastic.proto.Config
 

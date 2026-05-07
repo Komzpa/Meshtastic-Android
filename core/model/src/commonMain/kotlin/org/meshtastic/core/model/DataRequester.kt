@@ -19,9 +19,14 @@ package org.meshtastic.core.model
 /** Focused interface for requesting data from nodes. */
 interface DataRequester {
     suspend fun requestPosition(destNum: Int, currentPosition: Position)
+
     suspend fun requestUserInfo(destNum: Int)
+
     suspend fun requestTraceroute(destNum: Int)
+
     suspend fun requestTelemetry(destNum: Int, type: TelemetryType)
+
     suspend fun requestNeighborInfo(destNum: Int)
+
     suspend fun requestStoreForwardHistory(since: Int? = null, serverNodeNum: Int? = null): Boolean
 }

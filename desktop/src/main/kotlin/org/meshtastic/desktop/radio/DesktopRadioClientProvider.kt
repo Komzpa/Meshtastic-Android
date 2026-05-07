@@ -40,15 +40,15 @@ import org.meshtastic.sdk.transport.tcp.TcpTransport
 /**
  * Desktop (JVM) implementation of [RadioClientAccessor].
  *
- * Supports BLE (Kable JVM — macOS/Windows/Linux), TCP, and Serial (jSerialComm) transports.
- * Storage uses file-system backed SqlDelightStorageProvider with a platform-appropriate data dir.
+ * Supports BLE (Kable JVM — macOS/Windows/Linux), TCP, and Serial (jSerialComm) transports. Storage uses file-system
+ * backed SqlDelightStorageProvider with a platform-appropriate data dir.
  *
- * Registered manually in [desktopPlatformStubsModule] — do NOT add @Single to avoid
- * double-registration with the @ComponentScan in DesktopDiModule.
+ * Registered manually in [desktopPlatformStubsModule] — do NOT add @Single to avoid double-registration with
+ * the @ComponentScan in DesktopDiModule.
  */
-class DesktopRadioClientProvider(
-    private val radioPrefs: RadioPrefs,
-) : RadioClientAccessor, SdkClientLifecycle {
+class DesktopRadioClientProvider(private val radioPrefs: RadioPrefs) :
+    RadioClientAccessor,
+    SdkClientLifecycle {
 
     private val _client = MutableStateFlow<RadioClient?>(null)
     override val client: StateFlow<RadioClient?> = _client.asStateFlow()
@@ -57,59 +57,67 @@ class DesktopRadioClientProvider(
     private val mutex = Mutex()
 
     /**
-     * Tear down the existing client (if any) and build + connect a new one using the current
-     * saved radio address from [RadioPrefs].
+     * Tear down the existing client (if any) and build + connect a new one using the current saved radio address from
+     * [RadioPrefs].
      *
      * Supports BLE (`x` prefix), TCP (`t` prefix, format `tHOST:PORT`), and Serial (`s` prefix).
      */
     suspend fun rebuildAndConnect() = mutex.withLock {
-        val rawAddress = radioPrefs.devAddr.value
-            ?: run {
-                Logger.w { "DesktopRadioClientProvider: no saved device address — skipping connect" }
-                return@withLock
-            }
+        val rawAddress =
+            radioPrefs.devAddr.value
+                ?: run {
+                    Logger.w { "DesktopRadioClientProvider: no saved device address — skipping connect" }
+                    return@withLock
+                }
 
-        val interfaceChar = rawAddress.firstOrNull() ?: run {
-            Logger.w { "DesktopRadioClientProvider: empty address — skipping connect" }
-            return@withLock
-        }
+        val interfaceChar =
+            rawAddress.firstOrNull()
+                ?: run {
+                    Logger.w { "DesktopRadioClientProvider: empty address — skipping connect" }
+                    return@withLock
+                }
         val addressPayload = rawAddress.substring(1)
 
-        val transport: RadioTransport = when (InterfaceId.forIdChar(interfaceChar)) {
-            InterfaceId.BLUETOOTH -> {
-                // BLE on Desktop requires a Kable Peripheral (obtained via Scanner in the connections UI).
-                // Direct MAC-address construction is Android-only. Desktop BLE is handled by the
-                // connections feature via DesktopRadioTransportFactory; skip SDK client for BLE for now.
-                Logger.w { "DesktopRadioClientProvider: BLE not yet supported via SDK — use connections UI" }
-                return@withLock
-            }
+        val transport: RadioTransport =
+            when (InterfaceId.forIdChar(interfaceChar)) {
+                InterfaceId.BLUETOOTH -> {
+                    // BLE on Desktop requires a Kable Peripheral (obtained via Scanner in the connections UI).
+                    // Direct MAC-address construction is Android-only. Desktop BLE is handled by the
+                    // connections feature via DesktopRadioTransportFactory; skip SDK client for BLE for now.
+                    Logger.w { "DesktopRadioClientProvider: BLE not yet supported via SDK — use connections UI" }
+                    return@withLock
+                }
 
-            InterfaceId.TCP -> {
-                val (host, port) = parseTcpAddress(addressPayload)
-                Logger.i { "DesktopRadioClientProvider: building TCP transport for $host:$port" }
-                TcpTransport(host, port)
-            }
+                InterfaceId.TCP -> {
+                    val (host, port) = parseTcpAddress(addressPayload)
+                    Logger.i { "DesktopRadioClientProvider: building TCP transport for $host:$port" }
+                    TcpTransport(host, port)
+                }
 
-            InterfaceId.SERIAL -> {
-                Logger.i { "DesktopRadioClientProvider: building Serial transport for $addressPayload" }
-                JvmSerialPorts.open(addressPayload)
-            }
+                InterfaceId.SERIAL -> {
+                    Logger.i { "DesktopRadioClientProvider: building Serial transport for $addressPayload" }
+                    JvmSerialPorts.open(addressPayload)
+                }
 
-            InterfaceId.MOCK, InterfaceId.NOP, null -> {
-                Logger.w { "DesktopRadioClientProvider: unsupported transport '$interfaceChar' ($rawAddress)" }
-                return@withLock
+                InterfaceId.MOCK,
+                InterfaceId.NOP,
+                null,
+                -> {
+                    Logger.w { "DesktopRadioClientProvider: unsupported transport '$interfaceChar' ($rawAddress)" }
+                    return@withLock
+                }
             }
-        }
 
         val old = _client.value
         _client.value = null
         old?.let { runCatching { it.disconnect() }.onFailure { e -> Logger.w(e) { "disconnect old" } } }
 
-        val newClient = RadioClient.Builder()
-            .transport(transport)
-            .storage(SqlDelightStorageProvider(baseDir = storageDir()))
-            .autoReconnect(AutoReconnectConfig())
-            .build()
+        val newClient =
+            RadioClient.Builder()
+                .transport(transport)
+                .storage(SqlDelightStorageProvider(baseDir = storageDir()))
+                .autoReconnect(AutoReconnectConfig())
+                .build()
 
         _client.value = newClient
         newClient.connect()

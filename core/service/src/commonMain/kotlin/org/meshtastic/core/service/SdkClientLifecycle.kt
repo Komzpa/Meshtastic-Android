@@ -17,11 +17,11 @@
 package org.meshtastic.core.service
 
 /**
- * Minimal interface allowing [MeshService] to tear down the SDK client on service destroy
- * without creating a reverse module dependency on `app`.
+ * Minimal interface allowing [MeshService] to tear down the SDK client on service destroy without creating a reverse
+ * module dependency on `app`.
  *
- * Implemented by `RadioClientProvider` in the `app` module and registered in Koin as a
- * `@Single(binds = [SdkClientLifecycle::class])`. [MeshService] injects it via `by inject()`.
+ * Implemented by `RadioClientProvider` in the `app` module and registered in Koin as a `@Single(binds =
+ * [SdkClientLifecycle::class])`. [MeshService] injects it via `by inject()`.
  */
 interface SdkClientLifecycle {
     /** Gracefully disconnect and release the active SDK radio client. */

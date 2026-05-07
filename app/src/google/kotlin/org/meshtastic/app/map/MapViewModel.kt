@@ -670,8 +670,9 @@ class MapViewModel(
         (currentTileProvider as? MBTilesProvider)?.close()
     }
 
-    override fun getUser(userId: String?) =
-        nodeRepository.getUser(userId ?: org.meshtastic.core.model.DataPacket.nodeNumToId(org.meshtastic.core.model.DataPacket.BROADCAST))
+    override fun getUser(userId: String?) = nodeRepository.getUser(
+        userId ?: org.meshtastic.core.model.DataPacket.nodeNumToId(org.meshtastic.core.model.DataPacket.BROADCAST),
+    )
 }
 
 enum class LayerType {

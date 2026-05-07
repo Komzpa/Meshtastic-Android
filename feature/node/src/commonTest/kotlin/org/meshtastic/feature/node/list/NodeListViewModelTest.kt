@@ -31,9 +31,9 @@ import org.meshtastic.core.model.NodeSortOption
 import org.meshtastic.core.repository.RadioConfigRepository
 import org.meshtastic.core.repository.RadioPrefs
 import org.meshtastic.core.repository.ServiceRepository
+import org.meshtastic.core.testing.FakeAppPreferences
 import org.meshtastic.core.testing.FakeNodeRepository
 import org.meshtastic.core.testing.FakeRadioController
-import org.meshtastic.core.testing.FakeAppPreferences
 import org.meshtastic.core.testing.TestDataFactory
 import org.meshtastic.feature.node.detail.NodeManagementActions
 import org.meshtastic.feature.node.domain.usecase.GetFilteredNodesUseCase

@@ -67,8 +67,8 @@ class MeshServiceOrchestrator(
     /**
      * Starts the mesh service components and wires up data flows.
      *
-     * With the SDK hard-cutover, the RadioClient (via RadioClientProvider) owns transport and
-     * packet handling. This orchestrator retains responsibility for:
+     * With the SDK hard-cutover, the RadioClient (via RadioClientProvider) owns transport and packet handling. This
+     * orchestrator retains responsibility for:
      * - Per-device database initialization
      * - TAK server integration lifecycle
      * - Service notification channels

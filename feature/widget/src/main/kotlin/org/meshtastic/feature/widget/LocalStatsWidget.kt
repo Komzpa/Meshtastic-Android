@@ -304,10 +304,14 @@ class LocalStatsWidget :
             val statusText =
                 when (state.connectionState) {
                     is ConnectionState.Disconnected -> stringResource(Res.string.disconnected)
+
                     is ConnectionState.Connecting,
                     is ConnectionState.Configuring,
-                    is ConnectionState.Reconnecting -> stringResource(Res.string.connecting)
+                    is ConnectionState.Reconnecting,
+                    -> stringResource(Res.string.connecting)
+
                     is ConnectionState.DeviceSleep -> stringResource(Res.string.device_sleeping)
+
                     is ConnectionState.Connected -> ""
                 }
             Text(

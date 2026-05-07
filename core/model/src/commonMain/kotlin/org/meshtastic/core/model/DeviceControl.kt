@@ -23,10 +23,16 @@ package org.meshtastic.core.model
  */
 interface DeviceControl : ConnectionAware {
     suspend fun reboot(destNum: Int)
+
     suspend fun rebootToDfu(nodeNum: Int)
+
     suspend fun requestRebootOta(destNum: Int, mode: Int, hash: ByteArray?)
+
     suspend fun shutdown(destNum: Int)
+
     suspend fun factoryReset(destNum: Int)
+
     suspend fun nodedbReset(destNum: Int, preserveFavorites: Boolean)
+
     suspend fun removeByNodenum(nodeNum: Int)
 }

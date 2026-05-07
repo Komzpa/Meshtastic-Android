@@ -31,38 +31,48 @@ data class Capabilities(val firmwareVersion: String?, internal val forceEnableAl
     private fun check(sdkValue: Boolean): Boolean = forceEnableAll || sdkValue
 
     /** Ability to mute notifications from specific nodes via admin messages. */
-    val canMuteNode get() = check(sdk.canMuteNode)
+    val canMuteNode
+        get() = check(sdk.canMuteNode)
 
     /**
-     * Ability to request neighbor information from other nodes.
-     * Gated to unreleased firmware until working reliably.
+     * Ability to request neighbor information from other nodes. Gated to unreleased firmware until working reliably.
      */
-    val canRequestNeighborInfo get() = false
+    val canRequestNeighborInfo
+        get() = false
 
     /** Ability to send verified shared contacts. Supported since firmware v2.7.12. */
-    val canSendVerifiedContacts get() = check(sdk.canSendVerifiedContacts)
+    val canSendVerifiedContacts
+        get() = check(sdk.canSendVerifiedContacts)
 
     /** Ability to toggle device telemetry globally via module config. Supported since firmware v2.7.12. */
-    val canToggleTelemetryEnabled get() = check(sdk.canToggleTelemetryEnabled)
+    val canToggleTelemetryEnabled
+        get() = check(sdk.canToggleTelemetryEnabled)
 
     /** Ability to toggle the 'is_unmessageable' flag in user config. Supported since firmware v2.6.9. */
-    val canToggleUnmessageable get() = check(sdk.canToggleUnmessageable)
+    val canToggleUnmessageable
+        get() = check(sdk.canToggleUnmessageable)
 
     /** Support for sharing contact information via QR codes. Supported since firmware v2.6.8. */
-    val supportsQrCodeSharing get() = check(sdk.supportsQrCodeSharing)
+    val supportsQrCodeSharing
+        get() = check(sdk.supportsQrCodeSharing)
 
     /** Support for Status Message module. Supported since firmware v2.8.0. */
-    val supportsStatusMessage get() = check(sdk.supportsStatusMessage)
+    val supportsStatusMessage
+        get() = check(sdk.supportsStatusMessage)
 
     /** Support for Traffic Management module. Supported since firmware v3.0.0. */
-    val supportsTrafficManagementConfig get() = check(sdk.supportsTrafficManagementConfig)
+    val supportsTrafficManagementConfig
+        get() = check(sdk.supportsTrafficManagementConfig)
 
     /** Support for TAK (ATAK) module configuration. Supported since firmware v2.7.19. */
-    val supportsTakConfig get() = check(sdk.supportsTakConfig)
+    val supportsTakConfig
+        get() = check(sdk.supportsTakConfig)
 
     /** Support for location sharing on secondary channels. Supported since firmware v2.6.10. */
-    val supportsSecondaryChannelLocation get() = check(sdk.supportsSecondaryChannelLocation)
+    val supportsSecondaryChannelLocation
+        get() = check(sdk.supportsSecondaryChannelLocation)
 
     /** Support for ESP32 Unified OTA. Supported since firmware v2.7.18. */
-    val supportsEsp32Ota get() = check(sdk.supportsEsp32Ota)
+    val supportsEsp32Ota
+        get() = check(sdk.supportsEsp32Ota)
 }

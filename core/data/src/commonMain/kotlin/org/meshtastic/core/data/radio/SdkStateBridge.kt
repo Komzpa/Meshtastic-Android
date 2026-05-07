@@ -27,9 +27,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.Single
 import org.meshtastic.core.di.CoroutineDispatchers
-import org.meshtastic.core.model.ConnectionState as AppConnectionState
 import org.meshtastic.core.model.DataPacket
-import org.meshtastic.core.model.MessageStatus
 import org.meshtastic.core.model.service.ServiceAction
 import org.meshtastic.core.repository.MeshLocationManager
 import org.meshtastic.core.repository.NodeRepository
@@ -42,16 +40,17 @@ import org.meshtastic.proto.Position
 import org.meshtastic.proto.User
 import org.meshtastic.sdk.AdminResult
 import org.meshtastic.sdk.ChannelIndex
-import org.meshtastic.sdk.ConnectionState as SdkConnectionState
 import org.meshtastic.sdk.NodeId
+import org.meshtastic.core.model.ConnectionState as AppConnectionState
+import org.meshtastic.sdk.ConnectionState as SdkConnectionState
 
 /**
- * Bridges SDK reactive flows into the repository layer and routes [ServiceAction]s
- * directly through the SDK, bypassing the old CommandSender/MeshActionHandler pipeline.
+ * Bridges SDK reactive flows into the repository layer and routes [ServiceAction]s directly through the SDK, bypassing
+ * the old CommandSender/MeshActionHandler pipeline.
  *
- * The SDK owns the transport and all state; this bridge maps SDK emissions into [ServiceRepository]
- * and [NodeRepository] so that existing feature-module UI code (which observes those repositories)
- * continues to work without modification.
+ * The SDK owns the transport and all state; this bridge maps SDK emissions into [ServiceRepository] and
+ * [NodeRepository] so that existing feature-module UI code (which observes those repositories) continues to work
+ * without modification.
  */
 @Single
 class SdkStateBridge(
@@ -68,11 +67,12 @@ class SdkStateBridge(
     private var locationJob: Job? = null
 
     private val nodeBridge = SdkNodeBridge(nodeRepository = nodeRepository, topologyService = topologyService)
-    private val packetBridge = SdkPacketBridge(
-        serviceRepository = serviceRepository,
-        packetRepository = packetRepository,
-        nodeRepository = nodeRepository,
-    )
+    private val packetBridge =
+        SdkPacketBridge(
+            serviceRepository = serviceRepository,
+            packetRepository = packetRepository,
+            nodeRepository = nodeRepository,
+        )
     private val topologyBridge = SdkTopologyBridge(topologyService = topologyService)
     private val eventBridge = SdkEventBridge(serviceRepository = serviceRepository)
 
@@ -99,9 +99,7 @@ class SdkStateBridge(
     }
 
     private fun bindServiceActions() {
-        serviceRepository.serviceAction
-            .onEach { action -> handleServiceAction(action) }
-            .launchIn(scope)
+        serviceRepository.serviceAction.onEach { action -> handleServiceAction(action) }.launchIn(scope)
     }
 
     private fun bindLocationPublishing() {
@@ -111,25 +109,27 @@ class SdkStateBridge(
                 locationJob?.cancel()
                 locationJob = null
                 if (ownNode != null) {
-                    locationJob = uiPrefs.shouldProvideNodeLocation(ownNode.num)
-                        .onEach { shouldProvide ->
-                            if (shouldProvide) {
-                                locationManager.start(scope) { pos ->
-                                    scope.launch {
-                                        val client = accessor.client.value ?: return@launch
-                                        val posBytes = org.meshtastic.proto.Position.ADAPTER.encode(pos)
-                                        client.send(
-                                            portnum = PortNum.POSITION_APP,
-                                            payload = posBytes,
-                                            wantAck = false,
-                                        )
+                    locationJob =
+                        uiPrefs
+                            .shouldProvideNodeLocation(ownNode.num)
+                            .onEach { shouldProvide ->
+                                if (shouldProvide) {
+                                    locationManager.start(scope) { pos ->
+                                        scope.launch {
+                                            val client = accessor.client.value ?: return@launch
+                                            val posBytes = org.meshtastic.proto.Position.ADAPTER.encode(pos)
+                                            client.send(
+                                                portnum = PortNum.POSITION_APP,
+                                                payload = posBytes,
+                                                wantAck = false,
+                                            )
+                                        }
                                     }
+                                } else {
+                                    locationManager.stop()
                                 }
-                            } else {
-                                locationManager.stop()
                             }
-                        }
-                        .launchIn(scope)
+                            .launchIn(scope)
                 }
             }
             .launchIn(scope)
@@ -145,13 +145,13 @@ class SdkStateBridge(
 
         try {
             dispatchAction(client, action)
-        } catch (e: Exception) {
+        } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
             Logger.e(e) { "[SdkBridge] ServiceAction ${action::class.simpleName} failed" }
             if (action is ServiceAction.SendContact) action.result.complete(false)
         }
     }
 
-    @Suppress("CyclomaticComplexMethod")
+    @Suppress("CyclomaticComplexMethod", "LongMethod")
     private suspend fun dispatchAction(client: org.meshtastic.sdk.RadioClient, action: ServiceAction) {
         when (action) {
             is ServiceAction.Favorite -> {
@@ -237,12 +237,14 @@ class SdkStateBridge(
     companion object {
         private fun mapConnectionState(sdkState: SdkConnectionState): AppConnectionState = when (sdkState) {
             is SdkConnectionState.Disconnected -> AppConnectionState.Disconnected
+
             is SdkConnectionState.Connecting -> AppConnectionState.Connecting(attempt = sdkState.attempt)
-            is SdkConnectionState.Configuring -> AppConnectionState.Configuring(
-                phase = sdkState.phase.name,
-                progress = sdkState.progress,
-            )
+
+            is SdkConnectionState.Configuring ->
+                AppConnectionState.Configuring(phase = sdkState.phase.name, progress = sdkState.progress)
+
             is SdkConnectionState.Connected -> AppConnectionState.Connected
+
             is SdkConnectionState.Reconnecting -> AppConnectionState.Reconnecting(attempt = sdkState.attempt)
         }
     }

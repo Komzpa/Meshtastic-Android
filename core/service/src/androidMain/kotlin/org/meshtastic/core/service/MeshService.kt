@@ -39,8 +39,8 @@ import org.meshtastic.core.repository.ServiceRepository
  * Android foreground service that hosts the Meshtastic mesh radio connection.
  *
  * Acts as the lifecycle anchor for the [MeshServiceOrchestrator], which manages all manager initialization and
- * connection state. With the SDK hard-cutover, this service no longer exposes an AIDL binder — all communication
- * flows through the SDK's RadioClient via [SdkRadioControllerImpl] and [SdkStateBridge].
+ * connection state. With the SDK hard-cutover, this service no longer exposes an AIDL binder — all communication flows
+ * through the SDK's RadioClient via [SdkRadioControllerImpl] and [SdkStateBridge].
  */
 class MeshService : Service() {
 

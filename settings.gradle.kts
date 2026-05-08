@@ -112,6 +112,7 @@ include(
     ":feature:map",
     ":feature:node",
     ":feature:settings",
+    ":feature:docs",
     ":feature:firmware",
     ":feature:wifi-provision",
     ":desktop",

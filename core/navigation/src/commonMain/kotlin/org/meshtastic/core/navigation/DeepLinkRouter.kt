@@ -135,6 +135,7 @@ object DeepLinkRouter {
         }
     }
 
+    @Suppress("ReturnCount", "MagicNumber")
     private fun routeSettings(segments: List<String>): List<NavKey> {
         var destNum: Int? = null
         var subRouteStr: String? = null

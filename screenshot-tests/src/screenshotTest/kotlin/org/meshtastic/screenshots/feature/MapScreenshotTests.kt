@@ -19,36 +19,12 @@ package org.meshtastic.screenshots.feature
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import com.android.tools.screenshot.PreviewTest
-import org.meshtastic.feature.settings.component.AppInfoSectionPreview
-import org.meshtastic.feature.settings.component.AppearanceSectionPreview
-import org.meshtastic.feature.settings.component.NotificationSectionPreview
-import org.meshtastic.feature.settings.component.PersistenceSectionPreview
+import org.meshtastic.feature.map.component.MapControlsOverlayPreview
 
 @PreviewTest
 @PreviewLightDark
 @Composable
-fun ScreenshotAppearanceSection() {
-    AppearanceSectionPreview()
-}
-
-@PreviewTest
-@PreviewLightDark
-@Composable
-fun ScreenshotPersistenceSection() {
-    PersistenceSectionPreview()
-}
-
-@PreviewTest
-@PreviewLightDark
-@Composable
-fun ScreenshotAppInfoSection() {
-    AppInfoSectionPreview()
-}
-
-@PreviewTest
-@PreviewLightDark
-@Composable
-fun ScreenshotNotificationSection() {
-    NotificationSectionPreview()
+fun ScreenshotMapControlsOverlay() {
+    MapControlsOverlayPreview()
 }
 

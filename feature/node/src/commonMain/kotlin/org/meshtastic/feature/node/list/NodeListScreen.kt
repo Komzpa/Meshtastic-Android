@@ -14,8 +14,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-@file:Suppress("detekt:ALL")
-
 package org.meshtastic.feature.node.list
 
 import androidx.compose.animation.core.animateFloatAsState
@@ -92,7 +90,7 @@ import org.meshtastic.feature.node.component.NodeListHelp
 fun NodeListScreen(
     navigateToNodeDetails: (Int) -> Unit,
     viewModel: NodeListViewModel,
-    onNavigateToChannels: () -> Unit = {},
+    modifier: Modifier = Modifier,
     scrollToTopEvents: Flow<ScrollToTopEvent>? = null,
     activeNodeId: Int? = null,
     onHandleDeepLink: (org.meshtastic.core.common.util.CommonUri, onInvalid: () -> Unit) -> Unit = { _, _ -> },
@@ -144,6 +142,7 @@ fun NodeListScreen(
     }
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             MainAppBar(
                 title = stringResource(Res.string.nodes),
@@ -254,6 +253,7 @@ fun NodeListScreen(
                                     isActive = isActive,
                                     showPower = showPower,
                                     showLastHeard = showLastHeard,
+                                    lastHeardIsRelative = lastHeardIsRelative,
                                     showLocation = showLocation,
                                     showHops = showHops,
                                     showSignal = showSignal,

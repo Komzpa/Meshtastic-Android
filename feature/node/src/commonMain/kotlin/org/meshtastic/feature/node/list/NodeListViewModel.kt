@@ -70,7 +70,7 @@ class NodeListViewModel(
 
     val nodeListDensity: StateFlow<NodeListDensity> =
         nodeFilterPreferences.nodeListDensity
-            .map { name -> NodeListDensity.entries.firstOrNull { it.name == name } ?: NodeListDensity.COMPLETE }
+            .map { name -> NodeListDensity.fromName(name) }
             .stateInWhileSubscribed(initialValue = NodeListDensity.COMPLETE)
 
     val shouldShowPower = nodeFilterPreferences.shouldShowPower

@@ -21,6 +21,8 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import com.android.tools.screenshot.PreviewTest
 import org.meshtastic.feature.settings.component.AppInfoSectionPreview
 import org.meshtastic.feature.settings.component.AppearanceSectionPreview
+import org.meshtastic.feature.settings.component.NodeLayoutSettingsCompactPreview
+import org.meshtastic.feature.settings.component.NodeLayoutSettingsCompletePreview
 import org.meshtastic.feature.settings.component.PersistenceSectionPreview
 
 @PreviewTest
@@ -42,4 +44,22 @@ fun ScreenshotPersistenceSection() {
 @Composable
 fun ScreenshotAppInfoSection() {
     AppInfoSectionPreview()
+}
+
+// ---------------------------------------------------------------------------
+// Node layout settings screenshots
+// ---------------------------------------------------------------------------
+
+@PreviewTest
+@PreviewLightDark
+@Composable
+fun ScreenshotNodeLayoutSettingsCompact() {
+    NodeLayoutSettingsCompactPreview()
+}
+
+@PreviewTest
+@PreviewLightDark
+@Composable
+fun ScreenshotNodeLayoutSettingsComplete() {
+    NodeLayoutSettingsCompletePreview()
 }

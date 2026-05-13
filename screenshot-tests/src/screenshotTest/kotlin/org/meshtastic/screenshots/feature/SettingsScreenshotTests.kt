@@ -51,4 +51,3 @@ fun ScreenshotAppInfoSection() {
 fun ScreenshotNotificationSection() {
     NotificationSectionPreview()
 }
-

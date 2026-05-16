@@ -1239,7 +1239,7 @@
     <string name="traffic_management_rate_limit_enabled">Ограничение скорости</string>
     <string name="traffic_management_rate_limit_max_packets">Макс пакетов в окне</string>
     <string name="traffic_management_rate_limit_window">Окно ограничения скорости (сек.)</string>
-    <string name="traffic_management_router_preserve_hops">Сохраняить хопы маршрутизатора</string>
+    <string name="traffic_management_router_preserve_hops">Сохранять хопы маршрутизатора</string>
     <string name="traffic_management_unknown_packet_threshold">Порог передач неизвестных пакетов</string>
     <string name="transmit_over_lora">Передать через LoRa</string>
     <string name="transport_ble">BLE</string>
